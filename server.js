@@ -9,20 +9,20 @@ const io = new Server(server);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// In-memory player session balances (ready to expand with SQLite later)
 const players = new Map();
 
 io.on('connection', (socket) => {
   players.set(socket.id, { chips: 1000 });
   socket.emit('balanceUpdate', 1000);
 
-  socket.on('spinRoulette', ({ betAmount, choice }) => {
+  // 1. Pro 3D Roulette
+  socket.on('spinRoulette', ({ betAmount = 100, choice }) => {
     const player = players.get(socket.id);
-    if (!player || betAmount <= 0 || betAmount > player.chips) return;
+    const validBets = [50, 100, 250, 500];
+    if (!player || !validBets.includes(betAmount) || betAmount > player.chips) return;
 
     player.chips -= betAmount;
 
-    // 0 = Green (14x), 1-7 = Red (2x), 8-14 = Black (2x)
     const outcomeNumber = Math.floor(Math.random() * 15);
     const outcomeColor =
       outcomeNumber === 0 ? 'green' : outcomeNumber <= 7 ? 'red' : 'black';
@@ -41,6 +41,37 @@ io.on('connection', (socket) => {
     });
   });
 
+  // 2. Pro 3D Rising Rockets (with Prize Boost & Big Bang)
+  socket.on('launchRocket', ({ betAmount = 100, cashoutAt = 2.0 }) => {
+    const player = players.get(socket.id);
+    const validBets = [50, 100, 250, 500];
+    const targetMult = Math.max(1.1, Math.min(25, Number(cashoutAt) || 2.0));
+    if (!player || !validBets.includes(betAmount) || betAmount > player.chips) return;
+
+    player.chips -= betAmount;
+
+    const r = Math.random();
+    let crashPoint = 1.0 + Math.pow(-Math.log(Math.max(0.0001, r)), 1.15) * 1.45;
+    const prizeBoost = Math.random() < 0.18;
+    if (prizeBoost) crashPoint *= 1.35;
+    crashPoint = Number(Math.min(20, crashPoint).toFixed(2));
+
+    const bigBang = crashPoint <= 1.25;
+    const won = targetMult <= crashPoint;
+    const winAmount = won ? Math.floor(betAmount * targetMult) : 0;
+    if (won) player.chips += winAmount;
+
+    socket.emit('rocketResult', {
+      crashPoint,
+      targetMult,
+      prizeBoost,
+      bigBang,
+      won,
+      winAmount,
+      newBalance: player.chips
+    });
+  });
+
   socket.on('disconnect', () => {
     players.delete(socket.id);
   });
@@ -48,5 +79,5 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Baja Casino server running on port ${PORT}`);
+  console.log(`Baja Casino Pro server running on port ${PORT}`);
 });
