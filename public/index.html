@@ -3,85 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>BAJA CASINO | 3D VIP Lounge</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
-    body { overflow: hidden; background: #05050a; font-family: system-ui, -apple-system, sans-serif; color: #fff; }
-
-    #hud {
-      position: fixed; top: 0; left: 0; width: 100%; padding: 12px 14px;
-      display: flex; justify-content: space-between; align-items: center; gap: 8px;
-      background: linear-gradient(180deg, rgba(5,5,12,0.92) 0%, rgba(5,5,12,0.4) 70%, transparent 100%);
-      z-index: 20; pointer-events: none;
-    }
-    .badge {
-      background: rgba(16, 18, 30, 0.88); backdrop-filter: blur(10px);
-      border: 1px solid rgba(212, 175, 55, 0.7);
-      padding: 8px 13px; border-radius: 999px; font-weight: 800; font-size: 13px;
-      letter-spacing: 0.4px; box-shadow: 0 0 18px rgba(212, 175, 55, 0.25);
-      pointer-events: auto;
-    }
-    .brand { color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.45); }
-
-    #modeBar {
-      position: fixed; top: 56px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 8px; z-index: 20;
-      background: rgba(12, 14, 24, 0.85); padding: 5px; border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.12); backdrop-filter: blur(8px);
-    }
-    .mode-btn {
-      background: transparent; color: #b8bfd6; border: none; padding: 6px 14px;
-      border-radius: 999px; font-weight: 700; font-size: 12px; cursor: pointer;
-    }
-    .mode-btn.active {
-      background: linear-gradient(135deg, #d4af37, #ff9d00);
-      color: #08080f; box-shadow: 0 0 14px rgba(255, 180, 0, 0.45);
-    }
-
-    #status {
-      position: fixed; top: 98px; left: 50%; transform: translateX(-50%);
-      font-size: 13px; font-weight: 700; color: #ffe57f; z-index: 20;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.95); text-align: center; width: 92%;
-      pointer-events: none;
-    }
-
-    #panel {
-      position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
-      width: min(94vw, 460px); z-index: 20;
-      background: rgba(11, 13, 23, 0.9); backdrop-filter: blur(12px);
-      padding: 12px; border-radius: 18px;
-      border: 1px solid rgba(212, 175, 55, 0.35);
-      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.75);
-    }
-
-    #betSizes {
-      display: flex; justify-content: space-between; gap: 6px; margin-bottom: 10px;
-    }
-    .chip-btn {
-      flex: 1; padding: 6px 0; border-radius: 10px; font-size: 12px; font-weight: 800;
-      background: rgba(255,255,255,0.06); color: #cbd2e8; border: 1px solid rgba(255,255,255,0.12);
-      cursor: pointer;
-    }
-    .chip-btn.active {
-      background: rgba(212, 175, 55, 0.22); color: #ffd700; border-color: #ffd700;
-    }
-
-    .action-row { display: flex; gap: 8px; }
-    .game-btn {
-      flex: 1; border: none; padding: 12px 10px; border-radius: 12px; font-weight: 800;
-      color: #fff; cursor: pointer; font-size: 12px; letter-spacing: 0.3px;
-      transition: transform 0.1s ease, filter 0.15s ease;
-    }
-    .game-btn:active { transform: scale(0.96); }
-    .game-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    .btn-red { background: linear-gradient(180deg, #ff334b, #b81427); box-shadow: 0 4px 16px rgba(255, 51, 75, 0.35); }
-    .btn-green { background: linear-gradient(180deg, #1de076, #0d8242); box-shadow: 0 4px 16px rgba(29, 224, 118, 0.35); }
-    .btn-black { background: linear-gradient(180deg, #2d3246, #141722); border: 1px solid rgba(255,255,255,0.18); }
-    .btn-launch { background: linear-gradient(135deg, #ff7b00, #ff006e); box-shadow: 0 4px 20px rgba(255, 60, 110, 0.45); }
-
-    .hidden { display: none !important; }
-  </style>
+  <title>BAJA CASINO | VIP 3D Resort &amp; Lounge</title>
+  <link rel="stylesheet" href="/css/casino.css" />
   <script type="importmap">
     {
       "imports": {
@@ -92,40 +15,140 @@
   </script>
 </head>
 <body>
-  <div id="hud">
-    <div class="badge"><span class="brand">◆ BAJA CASINO</span> VIP 3D</div>
-    <div class="badge">💰 <span id="chips">1000</span></div>
-  </div>
+  <!-- Persistent 3D Stage Canvas -->
+  <div id="stageContainer"></div>
 
-  <div id="modeBar">
-    <button id="tabRoulette" class="mode-btn active" onclick="switchGame('roulette')">ROULETTE 3D</button>
-    <button id="tabRocket" class="mode-btn" onclick="switchGame('rocket')">RISING ROCKETS</button>
-  </div>
-
-  <div id="status">Select chip size &amp; place your bet</div>
-
-  <div id="panel">
-    <div id="betSizes">
-      <button class="chip-btn" onclick="setBet(50, this)">50</button>
-      <button class="chip-btn active" onclick="setBet(100, this)">100</button>
-      <button class="chip-btn" onclick="setBet(250, this)">250</button>
-      <button class="chip-btn" onclick="setBet(500, this)">500</button>
+  <!-- Top VIP Header -->
+  <header id="topBar">
+    <div class="brand-wrap" onclick="goLobby()">
+      <span class="brand-gem">◆</span>
+      <div>
+        <div class="brand-title">BAJA CASINO</div>
+        <div class="brand-sub"><span class="live-dot"></span> <span id="onlineCount">1</span> VIPs Online</div>
+      </div>
     </div>
 
-    <div id="rouletteControls" class="action-row">
-      <button class="game-btn btn-red" onclick="placeBet('red')">RED 2x</button>
-      <button class="game-btn btn-green" onclick="placeBet('green')">ZERO 14x</button>
-      <button class="game-btn btn-black" onclick="placeBet('black')">BLACK 2x</button>
+    <div class="header-right">
+      <button id="bonusBtn" class="pill-btn bonus-pill" onclick="claimBonus()">+ RELOAD</button>
+      <div class="pill-btn wallet-pill">💰 <span id="chips">1000</span></div>
+    </div>
+  </header>
+
+  <!-- Live Big-Win Ticker -->
+  <div id="tickerBar">
+    <span class="ticker-tag">LIVE WINS</span>
+    <div id="tickerText">Welcome to Baja Casino VIP Lounge — Spin, Launch &amp; Win Big</div>
+  </div>
+
+  <!-- Structured VIP Lobby View -->
+  <main id="lobbyView">
+    <!-- Hero Promo Banner Carousel -->
+    <section class="hero-banner" id="heroBanner">
+      <div class="hero-glow"></div>
+      <div class="hero-content">
+        <span id="heroBadge" class="hero-badge">VIP HIGH-ROLLER EVENT</span>
+        <h1 id="heroTitle">RISING ROCKETS: PRIZE BOOST</h1>
+        <p id="heroDesc">Ride the multiplier in 3D, catch Prize Boosts, and cash out before the Big Bang.</p>
+        <button id="heroCta" class="cta-btn" onclick="openTable('rocket')">LAUNCH TABLE →</button>
+      </div>
+      <div class="hero-dots">
+        <span class="dot active" onclick="setBanner(0)"></span>
+        <span class="dot" onclick="setBanner(1)"></span>
+        <span class="dot" onclick="setBanner(2)"></span>
+      </div>
+    </section>
+
+    <!-- VIP Jackpot Strip -->
+    <section class="jackpot-strip">
+      <div class="jp-card">
+        <div class="jp-label">BAJA GRAND JACKPOT</div>
+        <div class="jp-val" id="grandJackpot">25,000</div>
+      </div>
+      <div class="jp-card">
+        <div class="jp-label">ZERO PAYOUT</div>
+        <div class="jp-val emerald">14x</div>
+      </div>
+      <div class="jp-card">
+        <div class="jp-label">MEGA SLOTS TOP</div>
+        <div class="jp-val cyan">25x</div>
+      </div>
+    </section>
+
+    <!-- Game Lobby Cards Grid -->
+    <section class="section-head">
+      <h2>FEATURED 3D TABLES</h2>
+      <span>Tap to enter</span>
+    </section>
+
+    <section class="games-grid">
+      <article class="game-card" onclick="openTable('roulette')">
+        <div class="card-top accent-gold">
+          <span class="card-tag">LIVE 3D</span>
+          <span class="card-payout">14x ZERO</span>
+        </div>
+        <h3>Roulette 3D VIP</h3>
+        <p>Neon-lit 15-pocket 3D wheel with gold rim, spark bursts &amp; instant payouts.</p>
+        <div class="card-foot">PLAY ROULETTE →</div>
+      </article>
+
+      <article class="game-card" onclick="openTable('rocket')">
+        <div class="card-top accent-magenta">
+          <span class="card-tag">PRIZE BOOST</span>
+          <span class="card-payout">UP TO 25x</span>
+        </div>
+        <h3>Rising Rockets</h3>
+        <p>Watch live multiplier climb in 3D and cash out before Big Bang detonation.</p>
+        <div class="card-foot">LAUNCH ROCKET →</div>
+      </article>
+
+      <article class="game-card" onclick="openTable('slots')">
+        <div class="card-top accent-cyan">
+          <span class="card-tag">3D REELS</span>
+          <span class="card-payout">25x TRIPLE 7</span>
+        </div>
+        <h3>3D Mega Slots</h3>
+        <p>Triple spinning 3D reels with metallic trim, bloom glow &amp; combo multipliers.</p>
+        <div class="card-foot">SPIN SLOTS →</div>
+      </article>
+    </section>
+  </main>
+
+  <!-- Active 3D Table HUD -->
+  <section id="tableHud" class="hidden">
+    <div class="table-topbar">
+      <button class="back-btn" onclick="goLobby()">← LOBBY</button>
+      <div id="activeTableName" class="table-badge">ROULETTE 3D VIP</div>
     </div>
 
-    <div id="rocketControls" class="action-row hidden">
-      <button class="game-btn btn-launch" onclick="launchRocket(1.5)">TARGET 1.5x</button>
-      <button class="game-btn btn-launch" onclick="launchRocket(2.5)">TARGET 2.5x</button>
-      <button class="game-btn btn-launch" onclick="launchRocket(5.0)">TARGET 5.0x</button>
+    <div id="statusBanner">Place your bet to begin</div>
+    <div id="liveMult" class="hidden">1.00x</div>
+
+    <div id="controlDeck">
+      <div id="chipRow">
+        <button class="chip-opt" onclick="selectChip(50, this)">50</button>
+        <button class="chip-opt active" onclick="selectChip(100, this)">100</button>
+        <button class="chip-opt" onclick="selectChip(250, this)">250</button>
+        <button class="chip-opt" onclick="selectChip(500, this)">500</button>
+      </div>
+
+      <div id="rouletteDeck" class="action-grid">
+        <button class="act-btn red-btn" onclick="betRoulette('red')">RED 2x</button>
+        <button class="act-btn green-btn" onclick="betRoulette('green')">ZERO 14x</button>
+        <button class="act-btn black-btn" onclick="betRoulette('black')">BLACK 2x</button>
+      </div>
+
+      <div id="rocketDeck" class="action-grid hidden">
+        <button id="rocketLaunchBtn" class="act-btn launch-btn" onclick="startRocketRun()">🚀 LAUNCH ROCKET</button>
+        <button id="rocketCashoutBtn" class="act-btn cashout-btn hidden" onclick="cashoutRocketRun()">💰 CASH OUT</button>
+      </div>
+
+      <div id="slotsDeck" class="action-grid hidden">
+        <button id="slotsSpinBtn" class="act-btn slot-btn" onclick="spinMegaSlots()">🎰 SPIN 3D REELS</button>
+      </div>
     </div>
-  </div>
+  </section>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script type="module" src="/js/main3d.js"></script>
+  <script type="module" src="/js/engine3d.js"></script>
 </body>
 </html>
