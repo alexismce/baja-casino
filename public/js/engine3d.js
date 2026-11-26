@@ -17,7 +17,6 @@ let rocketGrowthRate = 0.55;
 let rocketPrizeBoost = false;
 let cameraShake = 0;
 
-// Hero Banner Carousel
 const BANNERS = [
   {
     badge: 'VIP HIGH-ROLLER EVENT',
@@ -73,7 +72,6 @@ setInterval(() => {
   if (el) el.textContent = jackpotVal.toLocaleString();
 }, 2400);
 
-// 1. Three.js WebGL2 Stage
 const container = document.getElementById('stageContainer');
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x05060c);
@@ -105,7 +103,6 @@ const bloomPass = new UnrealBloomPass(
 );
 composer.addPass(bloomPass);
 
-// Lighting & Lounge Floor
 scene.add(new THREE.AmbientLight(0x8fa8ff, 0.45));
 
 const goldSpot = new THREE.SpotLight(0xffd700, 95, 40, Math.PI / 4, 0.45, 1.2);
@@ -136,7 +133,6 @@ outerNeon.rotation.x = Math.PI / 2;
 outerNeon.position.y = -0.65;
 scene.add(outerNeon);
 
-// 2. Roulette 3D VIP + Orbiting Ball
 const rouletteGroup = new THREE.Group();
 scene.add(rouletteGroup);
 
@@ -182,7 +178,6 @@ const rouletteBall = new THREE.Mesh(
 rouletteBall.position.set(0, 0.25, 2.15);
 rouletteGroup.add(rouletteBall);
 
-// 3. Rising Rockets 3D + Boost Halo
 const rocketGroup = new THREE.Group();
 rocketGroup.position.set(-7.5, 0, -2);
 scene.add(rocketGroup);
@@ -219,7 +214,6 @@ rocketMesh.add(rBody, rNose, rFlame, boostAura);
 rocketMesh.position.set(0, 0.8, 0);
 rocketGroup.add(rocketMesh);
 
-// 4. 3D Mega Slots Reels
 const slotsGroup = new THREE.Group();
 slotsGroup.position.set(7.5, 0.4, -2);
 scene.add(slotsGroup);
@@ -261,7 +255,6 @@ for (let r = 0; r < 3; r++) {
   reelMeshes.push(reel);
 }
 
-// 5. Spark Particle Burst
 const sparkCount = 70;
 const sparkGeo = new THREE.BufferGeometry();
 const sparkPos = new Float32Array(sparkCount * 3);
@@ -296,7 +289,6 @@ function burstSparks(posVec, colorHex = 0xffd700, shakeAmt = 0) {
   if (shakeAmt > 0) cameraShake = shakeAmt;
 }
 
-// 6. UI & Navigation
 function setStatus(msg) {
   const el = document.getElementById('statusBanner');
   if (el) el.textContent = msg;
@@ -372,7 +364,6 @@ function lockControls(locked) {
   });
 }
 
-// Roulette Action
 let wheelSpeed = 0.012;
 let ballAngle = 0;
 let ballSpeed = 0.04;
@@ -394,7 +385,6 @@ window.betRoulette = (choice) => {
   socket.emit('spinRoulette', { betAmount: selectedBet, choice });
 };
 
-// Rising Rockets Actions
 let rocketAlt = 0.8;
 window.startRocketRun = () => {
   if (isBusy || rocketActive) return;
@@ -415,7 +405,6 @@ window.cashoutRocketRun = () => {
   socket.emit('cashoutRocket');
 };
 
-// 3D Mega Slots Action
 const reelSpinning = [false, false, false];
 window.spinMegaSlots = () => {
   if (isBusy) return;
@@ -433,7 +422,6 @@ window.spinMegaSlots = () => {
   socket.emit('spinSlots', { betAmount: selectedBet });
 };
 
-// 7. Socket.IO Listeners
 socket.on('connect', () => {
   if (currentView !== 'lobby') {
     setStatus('Connected to Baja Casino VIP');
@@ -564,7 +552,6 @@ socket.on('rocketCrashed', ({ crashPoint, bigBang, newBalance }) => {
 });
 
 socket.on('slotsResult', ({ reels, mult, winAmount, newBalance }) => {
-  // Stop reels sequentially for dramatic tension
   setTimeout(() => {
     reelSpinning[0] = false;
     reelMeshes[0].material.color.setHex(symbolColorMap[reels[0]] || 0xffd700);
@@ -598,7 +585,6 @@ socket.on('slotsResult', ({ reels, mult, winAmount, newBalance }) => {
   }, 1450);
 });
 
-// 8. Animation Loop
 const clock = new THREE.Clock();
 
 function animate() {

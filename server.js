@@ -11,9 +11,8 @@ const io = new Server(server, {
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Healthcheck endpoint for Railway / Cloudflare
 app.get('/health', (_req, res) => {
-  res.status(200).json({ status: 'ok', service: 'baja-casino' });
+  res.status(200).json({ status: 'ok', service: 'baja-casino', uptime: process.uptime() });
 });
 
 const players = new Map();
@@ -69,7 +68,6 @@ io.on('connection', (socket) => {
   });
   io.emit('onlineCount', io.engine.clientsCount);
 
-  // Free reload / VIP bonus
   socket.on('claimBonus', () => {
     const p = players.get(socket.id);
     if (!p) return;
@@ -89,7 +87,6 @@ io.on('connection', (socket) => {
     socket.emit('bonusStatus', { ok: true, message: `🎁 +${reward} VIP Chips credited!` });
   });
 
-  // 1. Roulette 3D
   socket.on('spinRoulette', (payload = {}) => {
     const p = players.get(socket.id);
     const betAmount = Number(payload.betAmount);
@@ -133,7 +130,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // 2. Interactive Rising Rockets
   socket.on('startRocket', (payload = {}) => {
     const p = players.get(socket.id);
     const betAmount = Number(payload.betAmount);
@@ -249,7 +245,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // 3. 3D Mega Slots
   socket.on('spinSlots', (payload = {}) => {
     const p = players.get(socket.id);
     const betAmount = Number(payload.betAmount);
@@ -319,7 +314,6 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`Baja Casino Pro Lobby server running on port ${PORT}`);
 });
 
-// Clean shutdown so container restarts never leave hanging timers
 function shutdown(signal) {
   console.log(`Received ${signal}, closing server cleanly...`);
   for (const p of players.values()) {
