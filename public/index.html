@@ -14,11 +14,9 @@
     }
   </script>
 </head>
-<body>
-  <!-- Persistent 3D Stage Canvas -->
+<body class="lobby-mode">
   <div id="stageContainer"></div>
 
-  <!-- Top VIP Header -->
   <header id="topBar">
     <div class="brand-wrap" onclick="goLobby()">
       <span class="brand-gem">◆</span>
@@ -34,22 +32,19 @@
     </div>
   </header>
 
-  <!-- Live Big-Win Ticker -->
   <div id="tickerBar">
     <span class="ticker-tag">LIVE WINS</span>
     <div id="tickerText">Welcome to Baja Casino VIP Lounge — Spin, Launch &amp; Win Big</div>
   </div>
 
-  <!-- Structured VIP Lobby View -->
   <main id="lobbyView">
-    <!-- Hero Promo Banner Carousel -->
     <section class="hero-banner" id="heroBanner">
       <div class="hero-glow"></div>
       <div class="hero-content">
         <span id="heroBadge" class="hero-badge">VIP HIGH-ROLLER EVENT</span>
         <h1 id="heroTitle">RISING ROCKETS: PRIZE BOOST</h1>
-        <p id="heroDesc">Ride the multiplier in 3D, catch Prize Boosts, and cash out before the Big Bang.</p>
-        <button id="heroCta" class="cta-btn" onclick="openTable('rocket')">LAUNCH TABLE →</button>
+        <p id="heroDesc">Climb live multipliers in 3D, catch Prize Boosts, and hit CASH OUT before Big Bang.</p>
+        <button id="heroCta" class="cta-btn" onclick="openTable('rocket')">LAUNCH ROCKET →</button>
       </div>
       <div class="hero-dots">
         <span class="dot active" onclick="setBanner(0)"></span>
@@ -58,7 +53,6 @@
       </div>
     </section>
 
-    <!-- VIP Jackpot Strip -->
     <section class="jackpot-strip">
       <div class="jp-card">
         <div class="jp-label">BAJA GRAND JACKPOT</div>
@@ -74,7 +68,6 @@
       </div>
     </section>
 
-    <!-- Game Lobby Cards Grid -->
     <section class="section-head">
       <h2>FEATURED 3D TABLES</h2>
       <span>Tap to enter</span>
@@ -87,7 +80,7 @@
           <span class="card-payout">14x ZERO</span>
         </div>
         <h3>Roulette 3D VIP</h3>
-        <p>Neon-lit 15-pocket 3D wheel with gold rim, spark bursts &amp; instant payouts.</p>
+        <p>Neon-lit 15-pocket 3D wheel with orbiting ball, gold rim &amp; spark bursts.</p>
         <div class="card-foot">PLAY ROULETTE →</div>
       </article>
 
@@ -97,7 +90,7 @@
           <span class="card-payout">UP TO 25x</span>
         </div>
         <h3>Rising Rockets</h3>
-        <p>Watch live multiplier climb in 3D and cash out before Big Bang detonation.</p>
+        <p>Live climbing multiplier in 3D—hit CASH OUT before Big Bang detonation.</p>
         <div class="card-foot">LAUNCH ROCKET →</div>
       </article>
 
@@ -107,20 +100,19 @@
           <span class="card-payout">25x TRIPLE 7</span>
         </div>
         <h3>3D Mega Slots</h3>
-        <p>Triple spinning 3D reels with metallic trim, bloom glow &amp; combo multipliers.</p>
+        <p>Three 3D drums with sequential reel stops, bloom glow &amp; combo wins.</p>
         <div class="card-foot">SPIN SLOTS →</div>
       </article>
     </section>
   </main>
 
-  <!-- Active 3D Table HUD -->
   <section id="tableHud" class="hidden">
     <div class="table-topbar">
       <button class="back-btn" onclick="goLobby()">← LOBBY</button>
       <div id="activeTableName" class="table-badge">ROULETTE 3D VIP</div>
     </div>
 
-    <div id="statusBanner">Place your bet to begin</div>
+    <div id="statusBanner">Select chip size &amp; place your bet</div>
     <div id="liveMult" class="hidden">1.00x</div>
 
     <div id="controlDeck">

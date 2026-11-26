@@ -5,15 +5,23 @@ const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+  cors: { origin: '*' }
+});
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Healthcheck endpoint for Railway / Cloudflare
+app.get('/health', (_req, res) => {
+  res.status(200).json({ status: 'ok', service: 'baja-casino' });
+});
+
 const players = new Map();
 const VALID_BETS = [50, 100, 250, 500];
+const ROCKET_GROWTH_PER_SEC = 0.55;
 
 const NICKNAMES = [
-  'BajaShark', 'SolisVIP', 'MareaAlta', 'Tijuana Ace',
+  'BajaShark', 'SolisVIP', 'MareaAlta', 'TijuanaAce',
   'Rosarito99', 'DoradoSpin', 'CaboHigh', 'NorteKing'
 ];
 
@@ -23,7 +31,7 @@ function randomNick() {
 
 function broadcastWin(entry) {
   io.emit('liveWin', {
-    id: Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     player: entry.player,
     game: entry.game,
     amount: entry.amount,
@@ -31,11 +39,19 @@ function broadcastWin(entry) {
   });
 }
 
-// Seed a couple initial live feed items so the lobby feels alive immediately
+function clearRocketSession(player) {
+  if (player && player.activeRocket) {
+    if (player.activeRocket.timer) {
+      clearTimeout(player.activeRocket.timer);
+    }
+    player.activeRocket = null;
+  }
+}
+
 setTimeout(() => {
   broadcastWin({ player: 'DoradoSpin', game: 'Roulette 3D', amount: 1400, detail: '0 GREEN 14x' });
-  broadcastWin({ player: 'MareaAlta', game: 'Rising Rockets', amount: 1250, detail: '5.00x Boost' });
-}, 600);
+  broadcastWin({ player: 'MareaAlta', game: 'Rising Rockets', amount: 1250, detail: '5.00x BOOST' });
+}, 800);
 
 io.on('connection', (socket) => {
   const nick = randomNick();
@@ -53,30 +69,43 @@ io.on('connection', (socket) => {
   });
   io.emit('onlineCount', io.engine.clientsCount);
 
-  // Free reload / daily bonus (every 60s for testing/playability)
+  // Free reload / VIP bonus
   socket.on('claimBonus', () => {
     const p = players.get(socket.id);
     if (!p) return;
+
     const now = Date.now();
-    const cooldown = 60 * 1000;
-    if (now - p.lastBonusAt < cooldown) {
-      const waitSec = Math.ceil((cooldown - (now - p.lastBonusAt)) / 1000);
-      socket.emit('bonusStatus', { ok: false, message: `Reload ready in ${waitSec}s` });
+    const cooldownMs = 30 * 1000;
+    if (now - p.lastBonusAt < cooldownMs) {
+      const waitSec = Math.ceil((cooldownMs - (now - p.lastBonusAt)) / 1000);
+      socket.emit('bonusStatus', { ok: false, message: `⏳ VIP Reload ready in ${waitSec}s` });
       return;
     }
+
     p.lastBonusAt = now;
-    const reward = p.chips < 200 ? 1000 : 500;
+    const reward = p.chips < 250 ? 1000 : 500;
     p.chips += reward;
     socket.emit('balanceUpdate', p.chips);
-    socket.emit('bonusStatus', { ok: true, message: `+${reward} VIP Bonus added!` });
+    socket.emit('bonusStatus', { ok: true, message: `🎁 +${reward} VIP Chips credited!` });
   });
 
   // 1. Roulette 3D
-  socket.on('spinRoulette', ({ betAmount = 100, choice }) => {
+  socket.on('spinRoulette', (payload = {}) => {
     const p = players.get(socket.id);
-    if (!p || !VALID_BETS.includes(betAmount) || betAmount > p.chips) return;
+    const betAmount = Number(payload.betAmount);
+    const choice = payload.choice;
+    if (!p || !VALID_BETS.includes(betAmount) || !['red', 'green', 'black'].includes(choice)) {
+      socket.emit('actionError', 'Invalid bet selection.');
+      return;
+    }
+    if (betAmount > p.chips) {
+      socket.emit('actionError', 'Not enough chips! Tap + RELOAD for free chips.');
+      return;
+    }
 
     p.chips -= betAmount;
+    socket.emit('balanceUpdate', p.chips);
+
     const outcomeNumber = Math.floor(Math.random() * 15);
     const outcomeColor =
       outcomeNumber === 0 ? 'green' : outcomeNumber <= 7 ? 'red' : 'black';
@@ -104,37 +133,49 @@ io.on('connection', (socket) => {
     }
   });
 
-  // 2. Interactive Rising Rockets (Start -> Live Climb -> Cash Out or Crash)
-  socket.on('startRocket', ({ betAmount = 100 }) => {
+  // 2. Interactive Rising Rockets
+  socket.on('startRocket', (payload = {}) => {
     const p = players.get(socket.id);
-    if (!p || !VALID_BETS.includes(betAmount) || betAmount > p.chips || p.activeRocket) return;
+    const betAmount = Number(payload.betAmount);
+    if (!p || !VALID_BETS.includes(betAmount)) {
+      socket.emit('actionError', 'Invalid bet amount.');
+      return;
+    }
+    if (p.activeRocket) {
+      socket.emit('actionError', 'Rocket already in flight!');
+      return;
+    }
+    if (betAmount > p.chips) {
+      socket.emit('actionError', 'Not enough chips! Tap + RELOAD for free chips.');
+      return;
+    }
 
     p.chips -= betAmount;
     socket.emit('balanceUpdate', p.chips);
 
     const r = Math.random();
-    let crashPoint = 1.0 + Math.pow(-Math.log(Math.max(0.0001, r)), 1.12) * 1.55;
-    const prizeBoost = Math.random() < 0.22;
+    let crashPoint = 1.05 + Math.pow(-Math.log(Math.max(0.0005, r)), 1.1) * 1.4;
+    const prizeBoost = Math.random() < 0.24;
     if (prizeBoost) crashPoint *= 1.35;
-    crashPoint = Number(Math.min(25, Math.max(1.05, crashPoint)).toFixed(2));
-    const bigBang = crashPoint <= 1.25;
+    crashPoint = Number(Math.min(25, Math.max(1.1, crashPoint)).toFixed(2));
+    const bigBang = crashPoint <= 1.28;
 
     const startTime = Date.now();
-    const rocketSession = {
+    const msToCrash = Math.min(15000, Math.max(500, ((crashPoint - 1) / ROCKET_GROWTH_PER_SEC) * 1000));
+
+    const session = {
       betAmount,
       crashPoint,
       prizeBoost,
       bigBang,
       startTime,
-      cashedOut: false,
+      settled: false,
       timer: null
     };
-    p.activeRocket = rocketSession;
 
-    // Server enforces crash when elapsed multiplier reaches crashPoint
-    const msToCrash = Math.min(14000, Math.max(600, (crashPoint - 1) * 1800));
-    rocketSession.timer = setTimeout(() => {
-      if (!p.activeRocket || p.activeRocket !== rocketSession || rocketSession.cashedOut) return;
+    session.timer = setTimeout(() => {
+      if (!p.activeRocket || p.activeRocket !== session || session.settled) return;
+      session.settled = true;
       p.activeRocket = null;
       socket.emit('rocketCrashed', {
         crashPoint,
@@ -144,26 +185,42 @@ io.on('connection', (socket) => {
       });
     }, msToCrash);
 
+    p.activeRocket = session;
+
     socket.emit('rocketStarted', {
       betAmount,
       prizeBoost,
-      bigBang
+      bigBang,
+      growthPerSec: ROCKET_GROWTH_PER_SEC
     });
   });
 
   socket.on('cashoutRocket', () => {
     const p = players.get(socket.id);
-    if (!p || !p.activeRocket || p.activeRocket.cashedOut) return;
+    if (!p || !p.activeRocket || p.activeRocket.settled) return;
 
     const session = p.activeRocket;
-    const elapsedSec = (Date.now() - session.startTime) / 1000;
-    const currentMult = Number(Math.min(session.crashPoint, 1 + elapsedSec * 0.55).toFixed(2));
-    const finalMult = Math.max(1.05, currentMult);
+    const elapsedSec = Math.max(0, (Date.now() - session.startTime) / 1000);
+    const liveMult = 1 + elapsedSec * ROCKET_GROWTH_PER_SEC;
 
-    session.cashedOut = true;
+    if (liveMult >= session.crashPoint) {
+      session.settled = true;
+      clearTimeout(session.timer);
+      p.activeRocket = null;
+      socket.emit('rocketCrashed', {
+        crashPoint: session.crashPoint,
+        prizeBoost: session.prizeBoost,
+        bigBang: session.bigBang,
+        newBalance: p.chips
+      });
+      return;
+    }
+
+    session.settled = true;
     clearTimeout(session.timer);
     p.activeRocket = null;
 
+    const finalMult = Number(Math.max(1.05, liveMult).toFixed(2));
     const winAmount = Math.floor(session.betAmount * finalMult);
     p.chips += winAmount;
 
@@ -185,14 +242,31 @@ io.on('connection', (socket) => {
     }
   });
 
-  // 3. 3D Mega Slots
-  socket.on('spinSlots', ({ betAmount = 100 }) => {
+  socket.on('cancelRocketPreview', () => {
     const p = players.get(socket.id);
-    if (!p || !VALID_BETS.includes(betAmount) || betAmount > p.chips) return;
+    if (p && p.activeRocket && p.activeRocket.settled) {
+      clearRocketSession(p);
+    }
+  });
+
+  // 3. 3D Mega Slots
+  socket.on('spinSlots', (payload = {}) => {
+    const p = players.get(socket.id);
+    const betAmount = Number(payload.betAmount);
+    if (!p || !VALID_BETS.includes(betAmount)) {
+      socket.emit('actionError', 'Invalid bet amount.');
+      return;
+    }
+    if (betAmount > p.chips) {
+      socket.emit('actionError', 'Not enough chips! Tap + RELOAD for free chips.');
+      return;
+    }
 
     p.chips -= betAmount;
+    socket.emit('balanceUpdate', p.chips);
+
     const symbols = ['7', 'DIAMOND', 'BELL', 'CHERRY', 'STAR'];
-    const weights = [0.12, 0.18, 0.22, 0.26, 0.22];
+    const weights = [0.14, 0.18, 0.22, 0.24, 0.22];
 
     function pickSymbol() {
       let roll = Math.random();
@@ -234,15 +308,28 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     const p = players.get(socket.id);
-    if (p && p.activeRocket && p.activeRocket.timer) {
-      clearTimeout(p.activeRocket.timer);
-    }
+    clearRocketSession(p);
     players.delete(socket.id);
     io.emit('onlineCount', io.engine.clientsCount);
   });
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`Baja Casino Pro Lobby server running on port ${PORT}`);
 });
+
+// Clean shutdown so container restarts never leave hanging timers
+function shutdown(signal) {
+  console.log(`Received ${signal}, closing server cleanly...`);
+  for (const p of players.values()) {
+    clearRocketSession(p);
+  }
+  server.close(() => {
+    process.exit(0);
+  });
+  setTimeout(() => process.exit(0), 2000);
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));

@@ -1,11 +1,9 @@
 class CasinoAudio {
   constructor() {
     this.ctx = null;
-    this.muted = false;
   }
 
   ensureContext() {
-    if (this.muted) return null;
     if (!this.ctx) {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (AudioCtx) this.ctx = new AudioCtx();
@@ -58,8 +56,8 @@ class CasinoAudio {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(110, now);
-    osc.frequency.exponentialRampToValueAtTime(340, now + 0.65);
+    osc.frequency.setValueAtTime(120, now);
+    osc.frequency.exponentialRampToValueAtTime(380, now + 0.65);
     gain.gain.setValueAtTime(0.07, now);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
     osc.connect(gain);
@@ -75,8 +73,8 @@ class CasinoAudio {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'square';
-    osc.frequency.setValueAtTime(140, now);
-    osc.frequency.exponentialRampToValueAtTime(32, now + 0.35);
+    osc.frequency.setValueAtTime(145, now);
+    osc.frequency.exponentialRampToValueAtTime(30, now + 0.35);
     gain.gain.setValueAtTime(0.14, now);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
     osc.connect(gain);

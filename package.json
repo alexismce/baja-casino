@@ -1,7 +1,7 @@
 {
   "name": "baja-casino",
-  "version": "1.0.0",
-  "description": "3D Multiplayer Casino Platform (Three.js / WebGL2 + Socket.IO) for baja-casino.com",
+  "version": "2.0.0",
+  "description": "Baja Casino 3D VIP Lounge with Roulette, Rising Rockets & Mega Slots",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

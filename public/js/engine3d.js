@@ -7,17 +7,17 @@ import { sound } from './audio.js';
 
 const socket = io();
 
-// App & Table State
 let currentChips = 1000;
 let selectedBet = 100;
-let currentView = 'lobby'; // 'lobby' | 'roulette' | 'rocket' | 'slots'
+let currentView = 'lobby';
 let isBusy = false;
 let rocketActive = false;
 let rocketStartTime = 0;
+let rocketGrowthRate = 0.55;
 let rocketPrizeBoost = false;
 let cameraShake = 0;
 
-// Hero Banner Carousel Data
+// Hero Banner Carousel
 const BANNERS = [
   {
     badge: 'VIP HIGH-ROLLER EVENT',
@@ -29,14 +29,14 @@ const BANNERS = [
   {
     badge: '14x ZERO PAYOUT',
     title: 'ROULETTE 3D VIP LOUNGE',
-    desc: 'Golden rim, neon stage lighting, spark bursts, and instant server-verified payouts.',
+    desc: 'Golden rim, orbiting 3D ball, neon stage lighting, and instant payouts.',
     cta: 'PLAY ROULETTE →',
     target: 'roulette'
   },
   {
     badge: '25x TRIPLE 7 JACKPOT',
     title: '3D MEGA SLOTS RESORT',
-    desc: 'Three physical 3D reels with metallic trim, bloom effects, and high-multiplier combos.',
+    desc: 'Three 3D drums with sequential reel locks, bloom glow, and combo wins.',
     cta: 'SPIN SLOTS →',
     target: 'slots'
   }
@@ -66,7 +66,6 @@ setInterval(() => {
   if (currentView === 'lobby') renderBanner(bannerIndex + 1);
 }, 5500);
 
-// Subtle animated jackpot counter
 let jackpotVal = 25000;
 setInterval(() => {
   jackpotVal += Math.floor(Math.random() * 19) + 3;
@@ -74,16 +73,16 @@ setInterval(() => {
   if (el) el.textContent = jackpotVal.toLocaleString();
 }, 2400);
 
-// 1. Three.js WebGL2 Stage Setup
+// 1. Three.js WebGL2 Stage
 const container = document.getElementById('stageContainer');
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x05060c);
 scene.fog = new THREE.FogExp2(0x05060c, 0.028);
 
 const camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 120);
-const camPosTarget = new THREE.Vector3(0, 7.5, 11.5);
-const camLookTarget = new THREE.Vector3(0, 0.2, 0);
-const camLookCurrent = new THREE.Vector3(0, 0.2, 0);
+const camPosTarget = new THREE.Vector3(0, 8.2, 13.5);
+const camLookTarget = new THREE.Vector3(0, 0.4, -1);
+const camLookCurrent = new THREE.Vector3(0, 0.4, -1);
 camera.position.copy(camPosTarget);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
@@ -106,7 +105,7 @@ const bloomPass = new UnrealBloomPass(
 );
 composer.addPass(bloomPass);
 
-// Stage Lights & Floor
+// Lighting & Lounge Floor
 scene.add(new THREE.AmbientLight(0x8fa8ff, 0.45));
 
 const goldSpot = new THREE.SpotLight(0xffd700, 95, 40, Math.PI / 4, 0.45, 1.2);
@@ -137,7 +136,7 @@ outerNeon.rotation.x = Math.PI / 2;
 outerNeon.position.y = -0.65;
 scene.add(outerNeon);
 
-// 2. Game 1: Roulette 3D VIP
+// 2. Roulette 3D VIP + Orbiting Ball
 const rouletteGroup = new THREE.Group();
 scene.add(rouletteGroup);
 
@@ -176,7 +175,14 @@ pointer.position.set(0, 0.52, 2.72);
 pointer.rotation.x = -Math.PI / 2;
 rouletteGroup.add(pointer);
 
-// 3. Game 2: Rising Rockets 3D
+const rouletteBall = new THREE.Mesh(
+  new THREE.SphereGeometry(0.14, 16, 16),
+  new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.85, roughness: 0.1 })
+);
+rouletteBall.position.set(0, 0.25, 2.15);
+rouletteGroup.add(rouletteBall);
+
+// 3. Rising Rockets 3D + Boost Halo
 const rocketGroup = new THREE.Group();
 rocketGroup.position.set(-7.5, 0, -2);
 scene.add(rocketGroup);
@@ -204,11 +210,16 @@ const rFlame = new THREE.Mesh(
 );
 rFlame.position.y = -1.12;
 rFlame.rotation.x = Math.PI;
-rocketMesh.add(rBody, rNose, rFlame);
+const boostAura = new THREE.Mesh(
+  new THREE.TorusGeometry(0.68, 0.04, 10, 32),
+  new THREE.MeshBasicMaterial({ color: 0xffd700 })
+);
+boostAura.visible = false;
+rocketMesh.add(rBody, rNose, rFlame, boostAura);
 rocketMesh.position.set(0, 0.8, 0);
 rocketGroup.add(rocketMesh);
 
-// 4. Game 3: 3D Mega Slots Reels
+// 4. 3D Mega Slots Reels
 const slotsGroup = new THREE.Group();
 slotsGroup.position.set(7.5, 0.4, -2);
 scene.add(slotsGroup);
@@ -227,14 +238,21 @@ topCrown.position.y = 1.35;
 slotsGroup.add(topCrown);
 
 const reelMeshes = [];
-const symbolColors = [0xffd700, 0x00f0ff, 0xff1e8a, 0xff2b47, 0x19e67c];
+const symbolColorMap = {
+  '7': 0xffd700,
+  DIAMOND: 0x00f0ff,
+  BELL: 0xff9500,
+  CHERRY: 0xff2b47,
+  STAR: 0x19e67c
+};
+
 for (let r = 0; r < 3; r++) {
   const reel = new THREE.Mesh(
     new THREE.CylinderGeometry(0.68, 0.68, 1.5, 20),
     new THREE.MeshStandardMaterial({
-      color: symbolColors[r],
-      metalness: 0.4,
-      roughness: 0.3
+      color: 0x2a314d,
+      metalness: 0.45,
+      roughness: 0.28
     })
   );
   reel.rotation.z = Math.PI / 2;
@@ -243,7 +261,7 @@ for (let r = 0; r < 3; r++) {
   reelMeshes.push(reel);
 }
 
-// 5. Spark Particle Burst System
+// 5. Spark Particle Burst
 const sparkCount = 70;
 const sparkGeo = new THREE.BufferGeometry();
 const sparkPos = new Float32Array(sparkCount * 3);
@@ -278,15 +296,21 @@ function burstSparks(posVec, colorHex = 0xffd700, shakeAmt = 0) {
   if (shakeAmt > 0) cameraShake = shakeAmt;
 }
 
-// 6. Navigation & UI Controls
+// 6. UI & Navigation
+function setStatus(msg) {
+  const el = document.getElementById('statusBanner');
+  if (el) el.textContent = msg;
+}
+
 window.openTable = (game) => {
   if (isBusy || rocketActive) return;
   sound.chipClink();
   currentView = game;
+  document.body.classList.remove('lobby-mode');
+  document.body.classList.add('table-mode');
 
   document.getElementById('lobbyView').classList.add('hidden');
   document.getElementById('tableHud').classList.remove('hidden');
-  container.classList.add('interactive');
 
   document.getElementById('rouletteDeck').classList.toggle('hidden', game !== 'roulette');
   document.getElementById('rocketDeck').classList.toggle('hidden', game !== 'rocket');
@@ -295,18 +319,20 @@ window.openTable = (game) => {
 
   if (game === 'roulette') {
     document.getElementById('activeTableName').textContent = 'ROULETTE 3D VIP';
-    document.getElementById('statusBanner').textContent = `Bet ${selectedBet} chips on RED, ZERO, or BLACK`;
+    setStatus(`Bet ${selectedBet} chips on RED, ZERO, or BLACK`);
     camPosTarget.set(0, 6.2, 7.6);
     camLookTarget.set(0, 0.2, 0);
   } else if (game === 'rocket') {
     document.getElementById('activeTableName').textContent = 'RISING ROCKETS 3D';
-    document.getElementById('statusBanner').textContent = `Bet ${selectedBet} chips & cash out before Big Bang`;
-    document.getElementById('liveMult').textContent = '1.00x';
+    setStatus(`Bet ${selectedBet} chips & cash out before Big Bang`);
+    const multEl = document.getElementById('liveMult');
+    multEl.textContent = '1.00x';
+    multEl.classList.remove('boosted');
     camPosTarget.set(-7.5, 3.6, 7.8);
     camLookTarget.set(-7.5, 1.8, -2);
   } else if (game === 'slots') {
     document.getElementById('activeTableName').textContent = '3D MEGA SLOTS';
-    document.getElementById('statusBanner').textContent = `Bet ${selectedBet} chips for Triple 7 Jackpot`;
+    setStatus(`Bet ${selectedBet} chips for Triple 7 Jackpot`);
     camPosTarget.set(7.5, 2.2, 6.8);
     camLookTarget.set(7.5, 0.4, -2);
   }
@@ -314,12 +340,15 @@ window.openTable = (game) => {
 
 window.goLobby = () => {
   if (isBusy || rocketActive) return;
+  socket.emit('cancelRocketPreview');
   sound.chipClink();
   currentView = 'lobby';
+  document.body.classList.remove('table-mode');
+  document.body.classList.add('lobby-mode');
+
   document.getElementById('lobbyView').classList.remove('hidden');
   document.getElementById('tableHud').classList.add('hidden');
   document.getElementById('liveMult').classList.add('hidden');
-  container.classList.remove('interactive');
   camPosTarget.set(0, 8.2, 13.5);
   camLookTarget.set(0, 0.4, -1);
 };
@@ -344,24 +373,39 @@ function lockControls(locked) {
 }
 
 // Roulette Action
-let wheelSpeed = 0.01;
+let wheelSpeed = 0.012;
+let ballAngle = 0;
+let ballSpeed = 0.04;
+let ballRadius = 2.15;
+
 window.betRoulette = (choice) => {
-  if (isBusy || currentChips < selectedBet) return;
+  if (isBusy) return;
+  if (currentChips < selectedBet) {
+    setStatus('⚠️ Low chips! Tap + RELOAD at top right.');
+    return;
+  }
   isBusy = true;
   lockControls(true);
+  wheelSpeed = 0.36;
+  ballSpeed = -0.32;
+  ballRadius = 2.38;
   sound.tick(880);
-  document.getElementById('statusBanner').textContent = `Spinning ${selectedBet} on ${choice.toUpperCase()}...`;
+  setStatus(`Spinning ${selectedBet} on ${choice.toUpperCase()}...`);
   socket.emit('spinRoulette', { betAmount: selectedBet, choice });
 };
 
 // Rising Rockets Actions
 let rocketAlt = 0.8;
 window.startRocketRun = () => {
-  if (isBusy || rocketActive || currentChips < selectedBet) return;
+  if (isBusy || rocketActive) return;
+  if (currentChips < selectedBet) {
+    setStatus('⚠️ Low chips! Tap + RELOAD at top right.');
+    return;
+  }
   isBusy = true;
   lockControls(true);
   sound.rocketWhoosh();
-  document.getElementById('statusBanner').textContent = 'Launching rocket... hit CASH OUT!';
+  setStatus('Launching rocket... hit CASH OUT!');
   socket.emit('startRocket', { betAmount: selectedBet });
 };
 
@@ -372,18 +416,44 @@ window.cashoutRocketRun = () => {
 };
 
 // 3D Mega Slots Action
-let reelSpinSpeed = 0;
+const reelSpinning = [false, false, false];
 window.spinMegaSlots = () => {
-  if (isBusy || currentChips < selectedBet) return;
+  if (isBusy) return;
+  if (currentChips < selectedBet) {
+    setStatus('⚠️ Low chips! Tap + RELOAD at top right.');
+    return;
+  }
   isBusy = true;
   lockControls(true);
-  reelSpinSpeed = 0.48;
+  reelSpinning[0] = true;
+  reelSpinning[1] = true;
+  reelSpinning[2] = true;
   sound.tick(640);
-  document.getElementById('statusBanner').textContent = `Spinning 3D reels for ${selectedBet} chips...`;
+  setStatus(`Spinning 3D reels for ${selectedBet} chips...`);
   socket.emit('spinSlots', { betAmount: selectedBet });
 };
 
-// 7. Socket.IO Events
+// 7. Socket.IO Listeners
+socket.on('connect', () => {
+  if (currentView !== 'lobby') {
+    setStatus('Connected to Baja Casino VIP');
+  }
+});
+
+socket.on('disconnect', () => {
+  isBusy = false;
+  rocketActive = false;
+  boostAura.visible = false;
+  lockControls(false);
+  setStatus('⚠️ Reconnecting to server...');
+});
+
+socket.on('actionError', (msg) => {
+  isBusy = false;
+  lockControls(false);
+  setStatus(`⚠️ ${msg}`);
+});
+
 socket.on('initState', ({ chips, onlineCount }) => {
   currentChips = chips;
   document.getElementById('chips').textContent = chips;
@@ -400,9 +470,9 @@ socket.on('balanceUpdate', (chips) => {
 });
 
 socket.on('bonusStatus', ({ message }) => {
-  document.getElementById('statusBanner').textContent = message;
   const ticker = document.getElementById('tickerText');
   if (ticker) ticker.textContent = message;
+  if (currentView !== 'lobby') setStatus(message);
 });
 
 socket.on('liveWin', (entry) => {
@@ -413,9 +483,10 @@ socket.on('liveWin', (entry) => {
 });
 
 socket.on('rouletteResult', ({ outcomeNumber, outcomeColor, winAmount, newBalance }) => {
-  wheelSpeed = 0.45;
   setTimeout(() => {
-    wheelSpeed = 0.01;
+    wheelSpeed = 0.012;
+    ballSpeed = 0.04;
+    ballRadius = 1.95;
     isBusy = false;
     lockControls(false);
     currentChips = newBalance;
@@ -424,34 +495,38 @@ socket.on('rouletteResult', ({ outcomeNumber, outcomeColor, winAmount, newBalanc
     if (winAmount > 0) {
       sound.winFanfare();
       burstSparks(new THREE.Vector3(0, 0.7, 2.1), outcomeColor === 'green' ? 0x16e076 : 0xffd700, 0.14);
-      document.getElementById('statusBanner').textContent =
-        `✨ ${outcomeNumber} (${outcomeColor.toUpperCase()}) • +${winAmount} Chips!`;
+      setStatus(`✨ ${outcomeNumber} (${outcomeColor.toUpperCase()}) • +${winAmount} Chips!`);
     } else {
       sound.tick(260);
-      document.getElementById('statusBanner').textContent =
-        `Landed ${outcomeNumber} (${outcomeColor.toUpperCase()}) • Try again`;
+      setStatus(`Landed ${outcomeNumber} (${outcomeColor.toUpperCase()}) • Try again`);
     }
-  }, 2000);
+  }, 1900);
 });
 
-socket.on('rocketStarted', ({ prizeBoost }) => {
+socket.on('rocketStarted', ({ prizeBoost, growthPerSec }) => {
   isBusy = false;
   rocketActive = true;
-  rocketPrizeBoost = prizeBoost;
+  rocketPrizeBoost = Boolean(prizeBoost);
+  rocketGrowthRate = Number(growthPerSec) || 0.55;
   rocketStartTime = performance.now();
+  boostAura.visible = rocketPrizeBoost;
+
+  const multEl = document.getElementById('liveMult');
+  multEl.classList.toggle('boosted', rocketPrizeBoost);
 
   document.getElementById('rocketLaunchBtn').classList.add('hidden');
   const cashBtn = document.getElementById('rocketCashoutBtn');
   cashBtn.classList.remove('hidden');
   cashBtn.disabled = false;
 
-  document.getElementById('statusBanner').textContent = prizeBoost
+  setStatus(rocketPrizeBoost
     ? '⚡ PRIZE BOOST ACTIVE! Cash out high!'
-    : '🚀 Climbing... tap CASH OUT anytime!';
+    : '🚀 Climbing... tap CASH OUT anytime!');
 });
 
 socket.on('rocketCashed', ({ multiplier, prizeBoost, winAmount, newBalance }) => {
   rocketActive = false;
+  boostAura.visible = false;
   rocketAlt = 0.8;
   rocketMesh.position.y = 0.8;
   currentChips = newBalance;
@@ -463,12 +538,12 @@ socket.on('rocketCashed', ({ multiplier, prizeBoost, winAmount, newBalance }) =>
 
   sound.winFanfare();
   burstSparks(new THREE.Vector3(-7.5, 2.2, -2), 0x19e67c, 0.15);
-  document.getElementById('statusBanner').textContent =
-    `💰 Cashed out at ${multiplier.toFixed(2)}x${prizeBoost ? ' [BOOST]' : ''} • +${winAmount} Chips!`;
+  setStatus(`💰 Cashed out at ${multiplier.toFixed(2)}x${prizeBoost ? ' [BOOST]' : ''} • +${winAmount} Chips!`);
 });
 
 socket.on('rocketCrashed', ({ crashPoint, bigBang, newBalance }) => {
   rocketActive = false;
+  boostAura.visible = false;
   currentChips = newBalance;
   document.getElementById('chips').textContent = newBalance;
 
@@ -483,14 +558,30 @@ socket.on('rocketCrashed', ({ crashPoint, bigBang, newBalance }) => {
   sound.explosion();
   burstSparks(boomPos, bigBang ? 0xff1e8a : 0xff5500, bigBang ? 0.36 : 0.22);
   document.getElementById('liveMult').textContent = `${crashPoint.toFixed(2)}x`;
-  document.getElementById('statusBanner').textContent = bigBang
+  setStatus(bigBang
     ? `💥 BIG BANG at ${crashPoint.toFixed(2)}x!`
-    : `💥 Crashed at ${crashPoint.toFixed(2)}x`;
+    : `💥 Crashed at ${crashPoint.toFixed(2)}x`);
 });
 
 socket.on('slotsResult', ({ reels, mult, winAmount, newBalance }) => {
+  // Stop reels sequentially for dramatic tension
   setTimeout(() => {
-    reelSpinSpeed = 0;
+    reelSpinning[0] = false;
+    reelMeshes[0].material.color.setHex(symbolColorMap[reels[0]] || 0xffd700);
+    sound.tick(520);
+  }, 550);
+
+  setTimeout(() => {
+    reelSpinning[1] = false;
+    reelMeshes[1].material.color.setHex(symbolColorMap[reels[1]] || 0x00f0ff);
+    sound.tick(620);
+  }, 1000);
+
+  setTimeout(() => {
+    reelSpinning[2] = false;
+    reelMeshes[2].material.color.setHex(symbolColorMap[reels[2]] || 0xff1e8a);
+    sound.tick(740);
+
     isBusy = false;
     lockControls(false);
     currentChips = newBalance;
@@ -499,65 +590,66 @@ socket.on('slotsResult', ({ reels, mult, winAmount, newBalance }) => {
     if (winAmount > 0) {
       sound.winFanfare();
       burstSparks(new THREE.Vector3(7.5, 0.8, -1.2), 0x00f0ff, 0.18);
-      document.getElementById('statusBanner').textContent =
-        `🎰 [${reels.join(' • ')}] ${mult}x • +${winAmount} Chips!`;
+      setStatus(`🎰 [${reels.join(' • ')}] ${mult}x • +${winAmount} Chips!`);
     } else {
       sound.tick(240);
-      document.getElementById('statusBanner').textContent =
-        `🎰 [${reels.join(' • ')}] No match • Spin again`;
+      setStatus(`🎰 [${reels.join(' • ')}] No match • Spin again`);
     }
-  }, 1350);
+  }, 1450);
 });
 
-// 8. Render & Animation Loop
+// 8. Animation Loop
 const clock = new THREE.Clock();
 
 function animate() {
   requestAnimationFrame(animate);
   const t = clock.getElapsedTime();
 
-  // Smooth camera glide
   camera.position.lerp(camPosTarget, 0.07);
   camLookCurrent.lerp(camLookTarget, 0.08);
   camera.lookAt(camLookCurrent);
 
-  // Camera shake on crash / jackpot
   if (cameraShake > 0.005) {
     camera.position.x += (Math.random() - 0.5) * cameraShake;
     camera.position.y += (Math.random() - 0.5) * cameraShake;
-    cameraShake *= 0.86;
+    cameraShake *= 0.85;
   }
 
-  // Neon breathing
   cyanLight.intensity = 32 + Math.sin(t * 2.1) * 8;
   magentaLight.intensity = 32 + Math.cos(t * 2.1) * 8;
 
-  // Roulette wheel rotation
   wheelSpinner.rotation.y += wheelSpeed;
+  ballAngle += ballSpeed;
+  rouletteBall.position.x = Math.cos(ballAngle) * ballRadius;
+  rouletteBall.position.z = Math.sin(ballAngle) * ballRadius;
 
-  // Rising Rocket climb
   if (rocketActive) {
-    const elapsedSec = (performance.now() - rocketStartTime) / 1000;
-    const displayMult = Math.max(1.0, 1 + elapsedSec * 0.55);
-    document.getElementById('liveMult').textContent = `${displayMult.toFixed(2)}x`;
+    const elapsedSec = Math.max(0, (performance.now() - rocketStartTime) / 1000);
+    const displayMult = 1 + elapsedSec * rocketGrowthRate;
+    const multEl = document.getElementById('liveMult');
+    if (multEl) multEl.textContent = `${displayMult.toFixed(2)}x`;
+
     rocketAlt = Math.min(5.2, 0.8 + elapsedSec * 0.75);
     rocketMesh.position.y = rocketAlt;
     rocketMesh.position.x = (Math.random() - 0.5) * 0.04;
     rFlame.scale.setScalar(1.1 + Math.sin(t * 40) * 0.3);
+
+    if (rocketPrizeBoost) {
+      boostAura.rotation.z = t * 4.5;
+      boostAura.scale.setScalar(1 + Math.sin(t * 8) * 0.12);
+    }
   } else {
     rocketMesh.position.x = 0;
     rocketMesh.position.y = 0.8 + Math.sin(t * 2.4) * 0.07;
     rFlame.scale.setScalar(0.85 + Math.sin(t * 14) * 0.1);
   }
 
-  // 3D Slot reels spin
-  if (reelSpinSpeed > 0) {
-    reelMeshes.forEach((rm, idx) => {
-      rm.rotation.x += reelSpinSpeed * (1 + idx * 0.12);
-    });
-  }
+  reelMeshes.forEach((rm, idx) => {
+    if (reelSpinning[idx]) {
+      rm.rotation.x += 0.52 * (1 + idx * 0.1);
+    }
+  });
 
-  // Spark particle physics
   if (sparkLife > 0) {
     sparkLife -= 0.024;
     const arr = sparkGeo.attributes.position.array;

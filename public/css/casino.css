@@ -1,8 +1,7 @@
 :root {
   --bg-void: #05060c;
-  --bg-card: rgba(14, 17, 30, 0.86);
+  --bg-card: rgba(14, 17, 30, 0.88);
   --gold: #ffd700;
-  --gold-dim: #c99b24;
   --cyan: #00f0ff;
   --magenta: #ff1e8a;
   --emerald: #19e67c;
@@ -23,8 +22,16 @@ body {
   background: var(--bg-void);
   color: var(--text);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  overflow-x: hidden;
   min-height: 100vh;
+}
+
+body.lobby-mode {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+body.table-mode {
+  overflow: hidden;
 }
 
 #stageContainer {
@@ -34,11 +41,6 @@ body {
   pointer-events: none;
 }
 
-#stageContainer.interactive {
-  pointer-events: auto;
-}
-
-/* Header */
 #topBar {
   position: fixed;
   top: 0;
@@ -49,7 +51,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 10px 14px;
-  background: linear-gradient(180deg, rgba(5, 6, 12, 0.94) 0%, rgba(5, 6, 12, 0.65) 80%, transparent 100%);
+  background: linear-gradient(180deg, rgba(5, 6, 12, 0.96) 0%, rgba(5, 6, 12, 0.72) 78%, transparent 100%);
   backdrop-filter: blur(8px);
 }
 
@@ -101,13 +103,13 @@ body {
   font-size: 12px;
   font-weight: 800;
   border: 1px solid rgba(255, 215, 0, 0.55);
-  background: rgba(18, 22, 38, 0.9);
+  background: rgba(18, 22, 38, 0.92);
   color: var(--text);
   cursor: pointer;
 }
 
 .bonus-pill {
-  border-color: rgba(0, 240, 255, 0.55);
+  border-color: rgba(0, 240, 255, 0.6);
   color: var(--cyan);
 }
 
@@ -116,7 +118,6 @@ body {
   box-shadow: 0 0 16px rgba(255, 215, 0, 0.22);
 }
 
-/* Live Ticker */
 #tickerBar {
   position: fixed;
   top: 52px;
@@ -127,9 +128,9 @@ body {
   align-items: center;
   gap: 8px;
   padding: 6px 14px;
-  background: rgba(9, 12, 22, 0.88);
+  background: rgba(9, 12, 22, 0.9);
   border-top: 1px solid rgba(255, 255, 255, 0.06);
-  border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 215, 0, 0.22);
   font-size: 11px;
 }
 
@@ -151,11 +152,10 @@ body {
   font-weight: 600;
 }
 
-/* Lobby Container */
 #lobbyView {
   position: relative;
   z-index: 10;
-  padding: 92px 14px 36px;
+  padding: 92px 14px 38px;
   max-width: 780px;
   margin: 0 auto;
 }
@@ -242,7 +242,6 @@ body {
   background: var(--gold);
 }
 
-/* Jackpot Strip */
 .jackpot-strip {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -276,7 +275,6 @@ body {
 .jp-val.emerald { color: var(--emerald); }
 .jp-val.cyan { color: var(--cyan); }
 
-/* Game Grid */
 .section-head {
   display: flex;
   justify-content: space-between;
@@ -364,7 +362,6 @@ body {
   color: var(--gold);
 }
 
-/* Active Table HUD */
 #tableHud {
   position: fixed;
   inset: 0;
@@ -384,9 +381,9 @@ body {
 }
 
 .back-btn {
-  background: rgba(16, 20, 34, 0.92);
+  background: rgba(16, 20, 34, 0.94);
   color: var(--text);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   padding: 8px 13px;
   border-radius: 10px;
   font-weight: 800;
@@ -395,8 +392,8 @@ body {
 }
 
 .table-badge {
-  background: rgba(16, 20, 34, 0.92);
-  border: 1px solid rgba(255, 215, 0, 0.5);
+  background: rgba(16, 20, 34, 0.94);
+  border: 1px solid rgba(255, 215, 0, 0.55);
   color: var(--gold);
   padding: 7px 12px;
   border-radius: 999px;
@@ -429,13 +426,18 @@ body {
   text-shadow: 0 0 22px rgba(0, 240, 255, 0.65);
 }
 
+#liveMult.boosted {
+  color: var(--gold);
+  text-shadow: 0 0 24px rgba(255, 215, 0, 0.85);
+}
+
 #controlDeck {
   position: fixed;
   bottom: 14px;
   left: 50%;
   transform: translateX(-50%);
   width: min(94vw, 480px);
-  background: rgba(11, 14, 25, 0.92);
+  background: rgba(11, 14, 25, 0.94);
   backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 215, 0, 0.35);
   border-radius: 18px;
