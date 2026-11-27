@@ -7,7 +7,8 @@
   "deploy": {
     "runtime": "V2",
     "numReplicas": 1,
-    "startCommand": "npm run start",
+    "startCommand": "node server.js",
+    "overlapSeconds": 0,
     "limitOverride": {
       "containers": {
         "cpu": 8
