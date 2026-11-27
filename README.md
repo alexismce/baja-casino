@@ -9,15 +9,20 @@ A small, local casino-style game room for learning and play. It includes weighte
 
 ## Run locally
 
-The official desktop launcher is the Lucky Lounge tray. It starts and owns the
-local Node.js server, presents live status, and opens the lounge or admin panel:
+Start the Node.js server directly:
 
-```powershell
+```sh
 npm start
 ```
 
-Use `npm run server` only when you need to run the Node server directly without
-the tray, or `npm run dev` to run it with automatic restart during development.
+On Windows, use the tray launcher when you want its live status and desktop
+controls:
+
+```powershell
+npm run tray
+```
+
+Use `npm run dev` to restart the server automatically during development.
 
 ### Railway staging checklist
 
@@ -34,8 +39,9 @@ the following have been reviewed and explicitly approved:
   satisfy this project's `engines.node` or its SQLite dependency. Verify the
   effective Railpack Node version and a clean Linux `npm ci` build.
 - The committed `railway.json` sets the start command to `npm run server` and
-  the healthcheck to `/api/health`; `npm start` launches the Windows tray and
-  fails on Linux. The server binds `0.0.0.0` automatically when Railway's
+  the healthcheck to `/api/health`. `npm start` also starts the Node server;
+  the Windows-only tray is available through `npm run tray`. The server binds
+  `0.0.0.0` automatically when Railway's
   environment is detected (or when `HOST` is set) and Railway provides `PORT`; its public proxy
   must target the actual listening port (currently shown as 8080). The default
   for a directly run local server remains `127.0.0.1:3000`.
@@ -54,7 +60,7 @@ the following have been reviewed and explicitly approved:
 
 ### Windows tray launcher
 
-Use `npm start`, `start-lounge-tray.cmd`, or:
+Use `start-lounge-tray.cmd` or:
 
 ```powershell
 npm run tray

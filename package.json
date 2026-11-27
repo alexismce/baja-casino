@@ -8,10 +8,11 @@
     "node": ">=22"
   },
   "scripts": {
-    "start": "npm run tray",
+    "start": "node server.js",
     "server": "node server.js",
     "start:headless": "node server.js",
     "tray": "powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -STA -File ./scripts/lucky-lounge-tray.ps1",
+    "start:tray": "npm run tray",
     "dev": "node --watch server.js",
     "build:installer": "powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./installer/Build-Lucky-Lounge-Launcher.ps1",
     "test": "node --test"
