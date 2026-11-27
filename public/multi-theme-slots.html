@@ -1553,13 +1553,16 @@
     const audio = new CasinoAudioEngine();
     const fxTakeover = new FullscreenTakeoverFX(document.getElementById('fx-takeover-canvas'), audio);
 
+    const requestedTheme = new URLSearchParams(window.location.search).get('theme');
+    const initialTheme = Object.values(GAME_THEMES).find((theme) => theme.id === requestedTheme) || GAME_THEMES.cosmic;
+
     const state = {
       balance: 1000.0,
       bet: 10,
       turbo: false,
       autoSpin: false,
       roundSeq: 0,
-      currentTheme: GAME_THEMES.cosmic
+      currentTheme: initialTheme
     };
 
     const hudBalance = document.getElementById('hud-balance');
