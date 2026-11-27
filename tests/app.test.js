@@ -150,6 +150,14 @@ test("serves the game room and creates a virtual-credit session", async () => {
   assert.match(quickClientHtml, /id="app-loader"/);
   assert.match(quickClientHtml, /Phaser 4/);
   assert.match(quickClientHtml, /fx-controller\.js/);
+  const scripts = [
+    ...quickClientHtml.matchAll(/<script\s+src="([^"]+)"\s+defer><\/script>/g),
+  ].map((match) => match[1]);
+  assert.ok(scripts.includes("/client/slot-presentation.js"));
+  assert.ok(
+    scripts.indexOf("/client/slot-presentation.js") <
+      scripts.indexOf("/client/app.js"),
+  );
   const bonusAudioScript = await fetch(`${baseUrl}/client/bonus-audio.js`);
   assert.equal(bonusAudioScript.status, 200);
   assert.match(bonusAudioScript.headers.get("content-type"), /javascript/);
@@ -302,6 +310,7 @@ test("serves every registered static route and rejects unknown pages and methods
     ["/client/app.js", /javascript/],
     ["/client/bonus-audio.js", /javascript/],
     ["/client/slots-3d.js", /javascript/],
+    ["/client/slot-presentation.js", /javascript/],
     ["/client/babylon.js", /javascript/],
     ["/client/phaser.min.js", /javascript/],
     ...["question", "seven", "cherry", "orange", "watermelon", "grapes"].map(

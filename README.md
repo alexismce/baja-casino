@@ -19,6 +19,38 @@ npm start
 Use `npm run server` only when you need to run the Node server directly without
 the tray, or `npm run dev` to run it with automatic restart during development.
 
+### Railway staging checklist
+
+This is a local virtual-credit demo, **not approved for public deployment**.
+The existing Railway production service tracks `main`, which contains a different
+application. Do not merge the review branch or deploy it to that service until
+the following have been reviewed and explicitly approved:
+
+- Inventory the existing service and its accounts, balances, and database; take
+  and verify a restorable backup before planning any migration. Never delete or
+  overwrite existing data as part of this preparation.
+- Use a separate, isolated staging service with a supported Node version of 22
+  or newer. The existing Railway service reports Node 20.20.2, which does not
+  satisfy this project's `engines.node` or its SQLite dependency. Verify the
+  effective Railpack Node version and a clean Linux `npm ci` build.
+- Configure the staging service's start command as `npm run start:headless`,
+  not `npm start` (which launches the Windows tray). Set `HOST=0.0.0.0` only
+  in that isolated service and let Railway provide `PORT`; its public proxy
+  must target the actual listening port (currently shown as 8080). The default
+  for a directly run local server remains `127.0.0.1:3000`.
+- Set `DATABASE_PATH` inside a persistent staging volume and use only one
+  replica with SQLite. Containers without a volume lose their data on redeploy.
+  Plan tested SQLite-consistent backups, including WAL state, and a rollback;
+  mounting an empty volume is not a migration from the current service.
+- Use `/api/health` for a readiness check; it returns 200 only when the SQLite
+  integrity checks pass. Confirm the health check and WebSocket traffic in
+  staging. Admin APIs are disabled unless an `ADMIN_TOKEN` of at least 32
+  characters is configured securely; never commit or share the token.
+- Before any public exposure, independently review authentication and the
+  known demo account, proxy trust, rate limiting, session security, monitoring,
+  recovery, and applicable compliance. A working health check is not a security
+  approval. Public deployment and production changes require separate consent.
+
 ### Windows tray launcher
 
 Use `npm start`, `start-lounge-tray.cmd`, or:

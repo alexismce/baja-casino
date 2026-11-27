@@ -107,6 +107,7 @@ let bonusMusicUntil = 0;
 let achievementToastTimer;
 let soundToggleSequence = 0;
 let gameRoomConnected = false;
+let appLoadingFinishing = false;
 
 function updateAppLoader(status, progress) {
   if (!appLoader || appLoader.classList.contains("is-ready")) return;
@@ -115,7 +116,14 @@ function updateAppLoader(status, progress) {
 }
 
 function maybeFinishAppLoading() {
-  if (!gameRoomConnected || !loungeScene || loungeScene.slot3dLoading) return;
+  if (
+    appLoadingFinishing ||
+    !gameRoomConnected ||
+    !loungeScene ||
+    loungeScene.slot3dLoading
+  )
+    return;
+  appLoadingFinishing = true;
   updateAppLoader("Your table is ready", 100);
   window.setTimeout(() => {
     appLoader.classList.add("is-ready");
@@ -148,12 +156,6 @@ const GAME_MODES = [
 ];
 const isSlotMode = (mode) =>
   ["slots", "mechanical-slots", "slots-3d"].includes(mode);
-const getSlotPresentationForBet = (bet) =>
-  Number(bet) >= 8
-    ? "slots-3d"
-    : Number(bet) >= 4
-      ? "mechanical-slots"
-      : "slots";
 const requestedParams = new URLSearchParams(window.location.search);
 const requestedMode = requestedParams.get("game");
 let slotWheelEnabled =
@@ -434,7 +436,9 @@ function updateSlotPresentationForBet() {
     !loungeScene
   )
     return;
-  const presentation = getSlotPresentationForBet(betInput.value);
+  const presentation = window.LuckySlotPresentation.getSlotPresentationForBet(
+    betInput.value,
+  );
   if (presentation !== currentMode) setMode(presentation);
 }
 
@@ -1502,6 +1506,7 @@ class LoungeScene extends Phaser.Scene {
     this.drawMode();
     syncGameModeUI(this.mode);
     updateConnection(socket.connected);
+    maybeFinishAppLoading();
   }
 
   addText(x, y, text, style = {}) {
@@ -3453,7 +3458,9 @@ document.querySelector("#play-form").addEventListener("submit", (event) => {
 });
 
 slotsTab.addEventListener("click", () =>
-  setMode(getSlotPresentationForBet(betInput.value)),
+  setMode(
+    window.LuckySlotPresentation.getSlotPresentationForBet(betInput.value),
+  ),
 );
 slotStyle.addEventListener("change", () => {
   slotStyle.value = isSlotMode(currentMode) ? currentMode : lastSlotMode;
