@@ -19,24 +19,24 @@ let cameraShake = 0;
 
 const BANNERS = [
   {
-    badge: 'VIP HIGH-ROLLER EVENT',
-    title: 'RISING ROCKETS: PRIZE BOOST',
-    desc: 'Climb live multipliers in 3D, catch Prize Boosts, and hit CASH OUT before Big Bang.',
-    cta: 'LAUNCH ROCKET →',
-    target: 'rocket'
-  },
-  {
-    badge: '14x ZERO PAYOUT',
-    title: 'ROULETTE 3D VIP LOUNGE',
-    desc: 'Golden rim, orbiting 3D ball, neon stage lighting, and instant payouts.',
-    cta: 'PLAY ROULETTE →',
+    badge: 'THE BAJA SALON',
+    title: 'Classic games in an elegant lounge',
+    desc: 'Choose a table or step into the slots floor for a refined session with virtual credits.',
+    cta: 'ENTER THE SALON →',
     target: 'roulette'
   },
   {
-    badge: '25x TRIPLE 7 JACKPOT',
-    title: '3D MEGA SLOTS RESORT',
-    desc: 'Three 3D drums with sequential reel locks, bloom glow, and combo wins.',
-    cta: 'SPIN SLOTS →',
+    badge: 'TABLE GAMES',
+    title: 'Roulette, set with care',
+    desc: 'A polished 15-pocket wheel, measured pacing, and a traditional green table.',
+    cta: 'TAKE A SEAT →',
+    target: 'roulette'
+  },
+  {
+    badge: 'SLOTS FLOOR',
+    title: 'The reels await',
+    desc: 'Choose from classic reels and curated themed cabinets across the casino floor.',
+    cta: 'EXPLORE THE FLOOR →',
     target: 'slots'
   }
 ];
