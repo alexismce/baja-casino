@@ -4,7 +4,10 @@ import { attachRealtime, createApp, isSameOrigin } from "./src/app.js";
 import { sessionStore } from "./src/session-store.js";
 
 const port = Number.parseInt(process.env.PORT ?? "3000", 10);
-const host = process.env.HOST ?? "127.0.0.1";
+// Railway's proxy cannot reach a loopback-only listener.
+const host =
+  process.env.HOST ??
+  (process.env.RAILWAY_ENVIRONMENT_NAME ? "0.0.0.0" : "127.0.0.1");
 
 if (!Number.isInteger(port) || port < 1 || port > 65535) {
   throw new Error("PORT must be an integer between 1 and 65535.");
@@ -18,7 +21,8 @@ const io = new Server(server, {
 });
 
 io.engine.on("headers", (headers) => {
-  headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' ws: wss:; img-src 'self' data:; base-uri 'none'; form-action 'self'; frame-ancestors 'none'";
+  headers["Content-Security-Policy"] =
+    "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' ws: wss:; img-src 'self' data:; base-uri 'none'; form-action 'self'; frame-ancestors 'none'";
   headers["X-Content-Type-Options"] = "nosniff";
   headers["X-Frame-Options"] = "DENY";
   headers["Referrer-Policy"] = "no-referrer";
@@ -30,7 +34,9 @@ server.listen(port, host, () => {
 });
 server.on("error", (error) => {
   if (error.code === "EADDRINUSE") {
-    console.error(`Cannot start Lucky Lounge: http://${host}:${port} is already in use. Stop the existing server or choose another PORT.`);
+    console.error(
+      `Cannot start Lucky Lounge: http://${host}:${port} is already in use. Stop the existing server or choose another PORT.`,
+    );
   } else {
     console.error("The game server could not start:", error);
   }

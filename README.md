@@ -33,9 +33,10 @@ the following have been reviewed and explicitly approved:
   or newer. The existing Railway service reports Node 20.20.2, which does not
   satisfy this project's `engines.node` or its SQLite dependency. Verify the
   effective Railpack Node version and a clean Linux `npm ci` build.
-- Configure the staging service's start command as `npm run start:headless`,
-  not `npm start` (which launches the Windows tray). Set `HOST=0.0.0.0` only
-  in that isolated service and let Railway provide `PORT`; its public proxy
+- The committed `railway.json` sets the start command to `npm run server` and
+  the healthcheck to `/api/health`; `npm start` launches the Windows tray and
+  fails on Linux. The server binds `0.0.0.0` automatically when Railway's
+  environment is detected (or when `HOST` is set) and Railway provides `PORT`; its public proxy
   must target the actual listening port (currently shown as 8080). The default
   for a directly run local server remains `127.0.0.1:3000`.
 - Set `DATABASE_PATH` inside a persistent staging volume and use only one
