@@ -1,7 +1,7 @@
 const express = require('express');
-const http = require('http');
+const http = require('node:http');
 const { Server } = require('socket.io');
-const path = require('path');
+const path = require('node:path');
 
 const app = express();
 const server = http.createServer(app);
@@ -16,7 +16,7 @@ app.get('/health', (_req, res) => {
 });
 
 const players = new Map();
-const VALID_BETS = [50, 100, 250, 500];
+const VALID_BETS = new Set([50, 100, 250, 500]);
 const ROCKET_GROWTH_PER_SEC = 0.55;
 
 const NICKNAMES = [
@@ -39,7 +39,7 @@ function broadcastWin(entry) {
 }
 
 function clearRocketSession(player) {
-  if (player && player.activeRocket) {
+  if (player?.activeRocket) {
     if (player.activeRocket.timer) {
       clearTimeout(player.activeRocket.timer);
     }
@@ -91,7 +91,7 @@ io.on('connection', (socket) => {
     const p = players.get(socket.id);
     const betAmount = Number(payload.betAmount);
     const choice = payload.choice;
-    if (!p || !VALID_BETS.includes(betAmount) || !['red', 'green', 'black'].includes(choice)) {
+    if (!p || !VALID_BETS.has(betAmount) || !['red', 'green', 'black'].includes(choice)) {
       socket.emit('actionError', 'Invalid bet selection.');
       return;
     }
@@ -104,8 +104,14 @@ io.on('connection', (socket) => {
     socket.emit('balanceUpdate', p.chips);
 
     const outcomeNumber = Math.floor(Math.random() * 15);
-    const outcomeColor =
-      outcomeNumber === 0 ? 'green' : outcomeNumber <= 7 ? 'red' : 'black';
+    let outcomeColor;
+    if (outcomeNumber === 0) {
+      outcomeColor = 'green';
+    } else if (outcomeNumber <= 7) {
+      outcomeColor = 'red';
+    } else {
+      outcomeColor = 'black';
+    }
 
     let winAmount = 0;
     if (choice === outcomeColor) {
@@ -133,7 +139,7 @@ io.on('connection', (socket) => {
   socket.on('startRocket', (payload = {}) => {
     const p = players.get(socket.id);
     const betAmount = Number(payload.betAmount);
-    if (!p || !VALID_BETS.includes(betAmount)) {
+    if (!p || !VALID_BETS.has(betAmount)) {
       socket.emit('actionError', 'Invalid bet amount.');
       return;
     }
@@ -193,7 +199,7 @@ io.on('connection', (socket) => {
 
   socket.on('cashoutRocket', () => {
     const p = players.get(socket.id);
-    if (!p || !p.activeRocket || p.activeRocket.settled) return;
+    if (!p?.activeRocket || p.activeRocket.settled) return;
 
     const session = p.activeRocket;
     const elapsedSec = Math.max(0, (Date.now() - session.startTime) / 1000);
@@ -240,7 +246,7 @@ io.on('connection', (socket) => {
 
   socket.on('cancelRocketPreview', () => {
     const p = players.get(socket.id);
-    if (p && p.activeRocket && p.activeRocket.settled) {
+    if (p?.activeRocket?.settled) {
       clearRocketSession(p);
     }
   });
@@ -248,7 +254,7 @@ io.on('connection', (socket) => {
   socket.on('spinSlots', (payload = {}) => {
     const p = players.get(socket.id);
     const betAmount = Number(payload.betAmount);
-    if (!p || !VALID_BETS.includes(betAmount)) {
+    if (!p || !VALID_BETS.has(betAmount)) {
       socket.emit('actionError', 'Invalid bet amount.');
       return;
     }
