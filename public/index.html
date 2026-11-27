@@ -16,19 +16,23 @@
 </head>
 <body class="lobby-mode">
   <div id="stageContainer"></div>
+  <div id="status-announcer" class="sr-only" role="status" aria-live="polite"></div>
 
   <header id="topBar">
     <div class="brand-wrap" onclick="goLobby()">
       <span class="brand-gem">◆</span>
       <div>
         <div class="brand-title">BAJA CASINO</div>
-        <div class="brand-sub"><span class="live-dot"></span> <span id="onlineCount">1</span> VIPs Online</div>
+        <div class="brand-sub"><span class="live-dot"></span> <span id="onlineCount">1</span> <span data-i18n="brand.subtitle">VIPs Online</span></div>
       </div>
     </div>
 
     <div class="header-right">
-      <button id="bonusBtn" class="pill-btn bonus-pill" onclick="claimBonus()">+ RELOAD</button>
-      <div class="pill-btn wallet-pill">💰 <span id="chips">1000</span></div>
+      <button type="button" class="pill-btn" data-set-locale="es-MX" aria-pressed="false">ES</button>
+      <button type="button" class="pill-btn" data-set-locale="en" aria-pressed="false">EN</button>
+      <button id="sound-toggle" type="button" class="pill-btn" aria-pressed="true">Sound: On</button>
+      <button id="bonusBtn" class="pill-btn bonus-pill" onclick="claimBonus()" data-i18n="wallet.daily">+ RELOAD</button>
+      <div class="pill-btn wallet-pill">💰 <span id="chips">1000</span> <span data-i18n="wallet.label">Virtual credits</span></div>
     </div>
   </header>
 
@@ -212,5 +216,6 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script type="module" src="/js/engine3d.js"></script>
+  <script src="/app.js"></script>
 </body>
 </html>

@@ -18,6 +18,24 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+[data-set-locale].is-active {
+  color: var(--gold);
+  border-color: rgba(255, 215, 0, 0.65);
+  background: rgba(255, 215, 0, 0.12);
+}
+
 body {
   background: var(--bg-void);
   color: var(--text);
