@@ -1,0 +1,1600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cosmic Fortune 5x3 | Baja Casino</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-deep: #050811;
+      --panel-bg: rgba(13, 20, 38, 0.85);
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: radial-gradient(circle at 50% 0%, #162144 0%, #050811 70%);
+      color: #f8fafc;
+      min-height: 100vh;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    .font-display {
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    #fx-takeover-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 50;
+      pointer-events: none;
+    }
+
+    .cabinet-frame {
+      box-shadow:
+        0 0 0 1px rgba(56, 189, 248, 0.28),
+        0 25px 60px -15px rgba(2, 6, 23, 0.95),
+        0 0 50px -12px rgba(245, 158, 11, 0.22);
+    }
+
+    .spin-btn {
+      background: linear-gradient(135deg, #f59e0b 0%, #ea580c 50%, #dc2626 100%);
+      box-shadow: 0 8px 25px -4px rgba(234, 88, 12, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      transition: transform 0.12s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    }
+    .spin-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      filter: brightness(1.08);
+      box-shadow: 0 12px 30px -4px rgba(245, 158, 11, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    }
+    .spin-btn:active:not(:disabled) {
+      transform: translateY(1px) scale(0.98);
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-amber-500/30 selection:text-amber-200">
+  <!-- Full-Screen FX Overlay Canvas (Comets, Fire Meteors, Fireworks, Audio Spectrum) -->
+  <canvas id="fx-takeover-canvas"></canvas>
+
+  <div class="relative z-10 max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col gap-4">
+    <a href="/" class="w-fit rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs font-bold text-slate-200 transition hover:border-amber-400 hover:text-amber-300">
+      ← BAJA CASINO LOBBY
+    </a>
+
+    <!-- Top Cabinet Telemetry Bar -->
+    <header class="flex flex-wrap items-center justify-between gap-3 bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-2xl px-4 py-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 via-orange-500 to-rose-600 flex items-center justify-center shadow-lg shadow-orange-500/25">
+          <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2L14.8 8.5L22 9.3L16.5 14L18.2 21L12 17.3L5.8 21L7.5 14L2 9.3L9.2 8.5L12 2Z" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="font-display text-base sm:text-lg font-black tracking-wider bg-gradient-to-r from-amber-200 via-white to-cyan-300 bg-clip-text text-transparent">
+            COSMIC FORTUNE 5x3
+          </h1>
+          <p class="text-[11px] text-slate-400">5-Reel Video Slot • 5 Paylines • Anticipation &amp; Big Win FX</p>
+        </div>
+      </div>
+
+      <!-- Balance, Last Win, Receipt & Audio -->
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+        <div class="px-3 py-1.5 rounded-xl bg-slate-950/90 border border-slate-800 flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="text-xs text-slate-400">Credits</span>
+          <span id="hud-balance" class="font-display text-sm font-bold text-emerald-400">1,000.00</span>
+        </div>
+
+        <div class="px-3 py-1.5 rounded-xl bg-slate-950/90 border border-slate-800 flex items-center gap-2">
+          <span class="text-xs text-slate-400">Win</span>
+          <span id="hud-win" class="font-display text-sm font-bold text-amber-300">0.00</span>
+        </div>
+
+        <div class="hidden md:flex px-3 py-1.5 rounded-xl bg-slate-950/90 border border-slate-800 items-center gap-1.5">
+          <span class="text-[11px] text-slate-500">ID</span>
+          <span id="hud-receipt" class="font-mono text-[11px] text-cyan-300">READY</span>
+        </div>
+
+        <button
+          id="btn-sound"
+          type="button"
+          class="p-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-slate-200 transition"
+          title="Toggle Sound Effects"
+        >
+          <svg id="icon-sound-on" class="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 010 7.07M19.07 4.93a10 10 0 010 14.14" />
+          </svg>
+          <svg id="icon-sound-off" class="w-4 h-4 text-slate-500 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Paytable Strip -->
+    <section class="grid grid-cols-3 sm:grid-cols-6 gap-2 bg-slate-900/65 border border-slate-800/80 rounded-xl px-3 py-2 text-center text-xs">
+      <div class="flex items-center justify-center gap-1.5 py-1 rounded-lg bg-slate-950/60 border border-amber-500/20">
+        <span class="text-base">👑</span>
+        <span class="font-display font-bold text-amber-300">50x</span>
+      </div>
+      <div class="flex items-center justify-center gap-1.5 py-1 rounded-lg bg-slate-950/60 border border-cyan-500/20">
+        <span class="text-base">💎</span>
+        <span class="font-display font-bold text-cyan-300">25x</span>
+      </div>
+      <div class="flex items-center justify-center gap-1.5 py-1 rounded-lg bg-slate-950/60 border border-fuchsia-500/30">
+        <span class="text-base">🌟</span>
+        <span class="font-display font-bold text-fuchsia-300">BONUS</span>
+      </div>
+      <div class="flex items-center justify-center gap-1.5 py-1 rounded-lg bg-slate-950/60 border border-rose-500/20">
+        <span class="text-base">7️⃣</span>
+        <span class="font-display font-bold text-rose-400">15x</span>
+      </div>
+      <div class="flex items-center justify-center gap-1.5 py-1 rounded-lg bg-slate-950/60 border border-purple-500/20">
+        <span class="text-base">⚡</span>
+        <span class="font-display font-bold text-purple-300">WILD</span>
+      </div>
+      <div class="flex items-center justify-center gap-1.5 py-1 rounded-lg bg-slate-950/60 border border-emerald-500/20">
+        <span class="text-base">🍀</span>
+        <span class="font-display font-bold text-emerald-300">5x</span>
+      </div>
+    </section>
+
+    <!-- Main 5-Reel Slot Cabinet Canvas -->
+    <main class="flex flex-col gap-3">
+      <div class="relative w-full aspect-[16/10] sm:aspect-[16/9] max-h-[500px] rounded-2xl overflow-hidden bg-slate-950 cabinet-frame">
+        <canvas id="slot-cabinet-canvas" class="block w-full h-full cursor-pointer touch-manipulation"></canvas>
+
+        <!-- Short Animated Bonus Clip Banner Overlay -->
+        <div
+          id="bonus-clip-overlay"
+          class="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 z-20"
+        >
+          <div id="bonus-clip-card" class="px-6 py-4 rounded-2xl bg-slate-950/90 border-2 border-amber-400/80 shadow-2xl shadow-amber-500/30 text-center transform scale-90 transition-transform duration-200">
+            <div id="bonus-clip-icon" class="text-4xl sm:text-5xl mb-1 animate-bounce">🌟</div>
+            <div id="bonus-clip-title" class="font-display text-lg sm:text-2xl font-black tracking-wider text-amber-300">BONUS TRIGGERED!</div>
+            <div id="bonus-clip-sub" class="text-xs sm:text-sm font-semibold text-cyan-200 mt-0.5">+3x Multiplier &amp; Free Spin</div>
+          </div>
+        </div>
+
+        <!-- Dynamic Status Pill -->
+        <div
+          id="cabinet-status"
+          class="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-slate-950/90 border border-slate-700/80 text-xs font-medium text-slate-200 backdrop-blur-md whitespace-nowrap"
+        >
+          Tap or click any reel while spinning to stop it individually!
+        </div>
+      </div>
+
+      <!-- External Control Deck -->
+      <section class="bg-slate-900/85 backdrop-blur-md border border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <!-- Bet Controls -->
+        <div class="flex flex-wrap items-center justify-between sm:justify-start gap-2">
+          <div class="flex items-center bg-slate-950 border border-slate-800 rounded-xl p-1">
+            <button type="button" data-bet="5" class="bet-btn px-3 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white">5</button>
+            <button type="button" data-bet="10" class="bet-btn px-3 py-2 rounded-lg text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">10</button>
+            <button type="button" data-bet="25" class="bet-btn px-3 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white">25</button>
+            <button type="button" data-bet="50" class="bet-btn px-3 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white">50</button>
+          </div>
+
+          <button
+            id="btn-turbo"
+            type="button"
+            class="px-3 py-2.5 rounded-xl text-xs font-semibold bg-slate-950 border border-slate-800 text-slate-400 hover:text-cyan-300 transition"
+          >
+            ⚡ Turbo: OFF
+          </button>
+
+          <button
+            id="btn-auto"
+            type="button"
+            class="px-3 py-2.5 rounded-xl text-xs font-semibold bg-slate-950 border border-slate-800 text-slate-400 hover:text-emerald-300 transition"
+          >
+            🔄 Auto: OFF
+          </button>
+        </div>
+
+        <!-- Spin & Force Big Win Test -->
+        <div class="flex items-center gap-2.5">
+          <button
+            id="btn-spin"
+            type="button"
+            class="spin-btn flex-1 md:flex-none px-8 py-3.5 rounded-xl font-display text-sm font-black tracking-wider uppercase text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            SPIN (10)
+          </button>
+
+          <button
+            id="btn-force-jackpot"
+            type="button"
+            class="px-3.5 py-3.5 rounded-xl text-xs font-semibold bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-200 border border-cyan-500/35 transition"
+            title="Simulate a confirmed Big Win round with full-screen FX"
+          >
+            Demo Big Win
+          </button>
+
+          <button
+            id="btn-reset"
+            type="button"
+            class="px-3 py-3.5 rounded-xl text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
+          >
+            Reset
+          </button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    /**
+     * ============================================================================
+     * 1. PROCEDURAL CASINO SOUND ENGINE (Web Audio API + Analyser)
+     * Synthesizes mechanical reel ticks, heavy reel lock thuds, anticipation rising
+     * tension, coin cascades, meteor impacts, and firework bursts.
+     * ============================================================================
+     */
+    class CasinoAudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.analyser = null;
+        this.freqData = null;
+        this.muted = false;
+      }
+
+      unlock() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (!AudioCtx) return;
+          this.ctx = new AudioCtx();
+          this.analyser = this.ctx.createAnalyser();
+          this.analyser.fftSize = 64;
+          this.freqData = new Uint8Array(this.analyser.frequencyBinCount);
+          this.analyser.connect(this.ctx.destination);
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      toggleMute() {
+        this.muted = !this.muted;
+        return this.muted;
+      }
+
+      getEnergy() {
+        if (!this.analyser || this.muted) return 0;
+        this.analyser.getByteFrequencyData(this.freqData);
+        let sum = 0;
+        for (let i = 0; i < this.freqData.length; i++) sum += this.freqData[i];
+        return sum / (this.freqData.length * 255);
+      }
+
+      playReelTick() {
+        if (this.muted) return;
+        this.unlock();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(520 + Math.random() * 140, now);
+        osc.frequency.exponentialRampToValueAtTime(180, now + 0.035);
+
+        gain.gain.setValueAtTime(0.045, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
+
+        osc.connect(gain);
+        gain.connect(this.analyser);
+        osc.start(now);
+        osc.stop(now + 0.04);
+      }
+
+      playReelStop(reelIndex, isTease = false) {
+        if (this.muted) return;
+        this.unlock();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        // Heavy mechanical latch thud
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        const baseFreq = isTease ? 240 + reelIndex * 55 : 150 + reelIndex * 18;
+        osc.frequency.setValueAtTime(baseFreq, now);
+        osc.frequency.exponentialRampToValueAtTime(48, now + 0.14);
+
+        gain.gain.setValueAtTime(0.24, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+        osc.connect(gain);
+        gain.connect(this.analyser);
+        osc.start(now);
+        osc.stop(now + 0.16);
+
+        // High chime if landing a scatter/high symbol tease
+        if (isTease) {
+          const chime = this.ctx.createOscillator();
+          const cGain = this.ctx.createGain();
+          chime.type = 'sine';
+          chime.frequency.setValueAtTime(587.33 * (1 + reelIndex * 0.12), now);
+          cGain.gain.setValueAtTime(0.14, now);
+          cGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          chime.connect(cGain);
+          cGain.connect(this.analyser);
+          chime.start(now);
+          chime.stop(now + 0.36);
+        }
+      }
+
+      playWinChime(multiplier) {
+        if (this.muted) return;
+        this.unlock();
+        if (!this.ctx) return;
+
+        const notes = multiplier >= 10
+          ? [523.25, 659.25, 783.99, 1046.5, 1318.5]
+          : [523.25, 659.25, 783.99];
+
+        notes.forEach((freq, idx) => {
+          const now = this.ctx.currentTime + idx * 0.08;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now);
+
+          gain.gain.setValueAtTime(0.16, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
+
+          osc.connect(gain);
+          gain.connect(this.analyser);
+          osc.start(now);
+          osc.stop(now + 0.44);
+        });
+      }
+
+      playWhoosh(duration = 0.65, fStart = 240, fEnd = 960) {
+        if (this.muted) return;
+        this.unlock();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(fStart, now);
+        osc.frequency.exponentialRampToValueAtTime(fEnd, now + duration);
+
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.exponentialRampToValueAtTime(0.12, now + duration * 0.25);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+        osc.connect(gain);
+        gain.connect(this.analyser);
+        osc.start(now);
+        osc.stop(now + duration);
+      }
+
+      playExplosion(heavy = false) {
+        if (this.muted) return;
+        this.unlock();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const duration = heavy ? 1.15 : 0.7;
+        const sampleCount = Math.floor(this.ctx.sampleRate * duration);
+        const buffer = this.ctx.createBuffer(1, sampleCount, this.ctx.sampleRate);
+        const channel = buffer.getChannelData(0);
+
+        for (let i = 0; i < sampleCount; i++) {
+          channel[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / sampleCount, 1.85);
+        }
+
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(heavy ? 1050 : 2400, now);
+        filter.frequency.exponentialRampToValueAtTime(110, now + duration);
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(heavy ? 0.34 : 0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.analyser);
+        noise.start(now);
+
+        if (heavy) {
+          const sub = this.ctx.createOscillator();
+          const subGain = this.ctx.createGain();
+          sub.type = 'triangle';
+          sub.frequency.setValueAtTime(140, now);
+          sub.frequency.exponentialRampToValueAtTime(34, now + 0.48);
+
+          subGain.gain.setValueAtTime(0.42, now);
+          subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+
+          sub.connect(subGain);
+          subGain.connect(this.analyser);
+          sub.start(now);
+          sub.stop(now + 0.52);
+        }
+      }
+    }
+
+    /**
+     * ============================================================================
+     * 2. FULL-SCREEN FX TAKEOVER OVERLAY
+     * Comets, fire meteors, fireworks, shockwaves, count-up banner & audio spectrum.
+     * ============================================================================
+     */
+    class FullscreenTakeoverFX {
+      constructor(canvas, audio) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.audio = audio;
+
+        this.width = 0;
+        this.height = 0;
+        this.active = false;
+        this.endTime = 0;
+        this.timers = [];
+
+        this.entities = [];
+        this.particles = [];
+        this.shockwaves = [];
+        this.shake = 0;
+        this.flashAlpha = 0;
+
+        this.bannerTitle = '';
+        this.targetAmount = 0;
+        this.displayedAmount = 0;
+        this.bannerScale = 0;
+
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+      }
+
+      resize() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+        this.canvas.width = Math.floor(this.width * dpr);
+        this.canvas.height = Math.floor(this.height * dpr);
+        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      trigger({ title = 'MEGA WIN!', payout = 250, durationMs = 4500 } = {}) {
+        this.timers.forEach((id) => clearTimeout(id));
+        this.timers = [];
+        this.audio.unlock();
+
+        this.bannerTitle = title;
+        this.targetAmount = payout;
+        this.displayedAmount = 0;
+        this.bannerScale = 0.2;
+        this.flashAlpha = 0.3;
+        this.endTime = performance.now() + durationMs;
+
+        // Multi-stage choreographed assault
+        this.spawnComet();
+        this.timers.push(setTimeout(() => this.spawnMeteor(), 320));
+        this.timers.push(setTimeout(() => { this.spawnFirework(); this.spawnFirework(); }, 620));
+        this.timers.push(setTimeout(() => { this.spawnComet(); this.spawnMeteor(); }, 1200));
+        this.timers.push(setTimeout(() => { this.spawnFirework(); this.spawnFirework(); }, 1800));
+        this.timers.push(setTimeout(() => this.spawnMeteor(), 2400));
+        this.timers.push(setTimeout(() => { this.spawnComet(); this.spawnFirework(); }, 3000));
+
+        if (!this.active) {
+          this.active = true;
+          this.loop();
+        }
+      }
+
+      spawnComet() {
+        const fromLeft = Math.random() > 0.5;
+        const startX = fromLeft ? -50 : this.width + 50;
+        const startY = this.height * (0.08 + Math.random() * 0.32);
+        const vx = (fromLeft ? 1 : -1) * (16 + Math.random() * 7);
+        const vy = 3 + Math.random() * 3.5;
+
+        this.audio.playWhoosh(0.6, 340, 1200);
+        this.entities.push({
+          type: 'comet',
+          x: startX,
+          y: startY,
+          vx,
+          vy,
+          hue: 185 + Math.random() * 35,
+          life: 1.35
+        });
+      }
+
+      spawnMeteor() {
+        const startX = this.width * (0.15 + Math.random() * 0.7);
+        const startY = -45;
+        const targetX = startX + (Math.random() * 320 - 160);
+        const targetY = this.height * (0.62 + Math.random() * 0.24);
+        const angle = Math.atan2(targetY - startY, targetX - startX);
+        const speed = 15.5 + Math.random() * 5;
+
+        this.audio.playWhoosh(0.55, 520, 150);
+        this.entities.push({
+          type: 'meteor',
+          x: startX,
+          y: startY,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          targetY,
+          radius: 10 + Math.random() * 4
+        });
+      }
+
+      spawnFirework() {
+        const startX = this.width * (0.15 + Math.random() * 0.7);
+        const peakY = this.height * (0.16 + Math.random() * 0.3);
+
+        this.audio.playWhoosh(0.48, 220, 760);
+        this.entities.push({
+          type: 'firework',
+          x: startX,
+          y: this.height + 10,
+          vx: (Math.random() - 0.5) * 2.4,
+          vy: -(11.5 + Math.random() * 3.5),
+          peakY,
+          hue: Math.floor(Math.random() * 360)
+        });
+      }
+
+      burst(x, y, hue, count, maxSpeed, isMeteorImpact) {
+        this.audio.playExplosion(isMeteorImpact);
+        this.shockwaves.push({
+          x,
+          y,
+          radius: 10,
+          maxRadius: isMeteorImpact ? 250 : 150,
+          alpha: 0.92,
+          hue
+        });
+
+        if (isMeteorImpact) {
+          this.shake = 18;
+          this.flashAlpha = 0.28;
+        }
+
+        for (let i = 0; i < count; i++) {
+          const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.22;
+          const speed = (0.25 + Math.random() * 0.75) * maxSpeed;
+          this.particles.push({
+            x,
+            y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed - (isMeteorImpact ? 2.4 : 0),
+            gravity: isMeteorImpact ? 0.16 : 0.09,
+            drag: 0.96,
+            alpha: 1,
+            decay: 0.014 + Math.random() * 0.014,
+            size: isMeteorImpact ? 2.5 + Math.random() * 2.8 : 2 + Math.random() * 2,
+            hue: isMeteorImpact ? 16 + Math.random() * 34 : hue + (Math.random() * 30 - 15)
+          });
+        }
+      }
+
+      drawGlow(x, y, radius, hue) {
+        const grad = this.ctx.createRadialGradient(x, y, 0, x, y, radius);
+        grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        grad.addColorStop(0.35, `hsla(${hue}, 100%, 62%, 0.85)`);
+        grad.addColorStop(1, `hsla(${hue}, 100%, 50%, 0)`);
+        this.ctx.fillStyle = grad;
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, radius, 0, Math.PI * 2);
+        this.ctx.fill();
+      }
+
+      drawSpectrum(energy) {
+        if (!this.audio.freqData || this.audio.muted) return;
+        const bins = this.audio.freqData.length;
+        const barWidth = Math.max(4, (this.width * 0.5) / bins);
+        const startX = (this.width - bins * barWidth) * 0.5;
+        const baseY = this.height - 16;
+
+        for (let i = 0; i < bins; i++) {
+          const val = this.audio.freqData[i] / 255;
+          const h = Math.max(3, val * 75 * (0.7 + energy));
+          const hue = 25 + (i / bins) * 190;
+          this.ctx.fillStyle = `hsla(${hue}, 95%, 60%, ${0.25 + val * 0.55})`;
+          this.ctx.fillRect(startX + i * barWidth, baseY - h, barWidth - 2, h);
+        }
+      }
+
+      loop() {
+        const now = performance.now();
+        const ctx = this.ctx;
+        const energy = this.audio.getEnergy();
+
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = 'rgba(4, 7, 16, 0.26)';
+        ctx.fillRect(0, 0, this.width, this.height);
+
+        if (this.flashAlpha > 0.01) {
+          ctx.fillStyle = `rgba(255, 236, 200, ${this.flashAlpha})`;
+          ctx.fillRect(0, 0, this.width, this.height);
+          this.flashAlpha *= 0.85;
+        }
+
+        ctx.save();
+        if (this.shake > 0.2) {
+          ctx.translate((Math.random() - 0.5) * this.shake, (Math.random() - 0.5) * this.shake);
+          this.shake *= 0.88;
+        }
+
+        ctx.globalCompositeOperation = 'lighter';
+
+        for (let i = this.entities.length - 1; i >= 0; i--) {
+          const e = this.entities[i];
+          e.x += e.vx;
+          e.y += e.vy;
+
+          if (e.type === 'comet') {
+            e.life -= 0.015;
+            this.drawGlow(e.x, e.y, 15 + energy * 10, e.hue);
+            this.particles.push({
+              x: e.x,
+              y: e.y,
+              vx: -e.vx * 0.15 + (Math.random() - 0.5),
+              vy: -e.vy * 0.15 + (Math.random() - 0.5),
+              gravity: 0,
+              drag: 0.94,
+              alpha: 0.9,
+              decay: 0.03,
+              size: 3.4,
+              hue: e.hue
+            });
+            if (e.life <= 0 || e.x < -120 || e.x > this.width + 120) {
+              this.entities.splice(i, 1);
+            }
+          } else if (e.type === 'meteor') {
+            this.drawGlow(e.x, e.y, e.radius * 2.3, 24);
+            for (let k = 0; k < 2; k++) {
+              this.particles.push({
+                x: e.x + (Math.random() - 0.5) * 10,
+                y: e.y + (Math.random() - 0.5) * 10,
+                vx: (Math.random() - 0.5) * 2.4,
+                vy: -Math.random() * 2,
+                gravity: -0.03,
+                drag: 0.95,
+                alpha: 1,
+                decay: 0.035,
+                size: 3 + Math.random() * 3,
+                hue: 15 + Math.random() * 35
+              });
+            }
+            if (e.y >= e.targetY) {
+              this.burst(e.x, e.y, 24, 75, 10, true);
+              this.entities.splice(i, 1);
+            }
+          } else if (e.type === 'firework') {
+            e.vy += 0.14;
+            this.drawGlow(e.x, e.y, 6, e.hue);
+            if (e.vy >= -1 || e.y <= e.peakY) {
+              this.burst(e.x, e.y, e.hue, 65, 8.5, false);
+              this.entities.splice(i, 1);
+            }
+          }
+        }
+
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+          const p = this.particles[i];
+          p.vx *= p.drag;
+          p.vy = p.vy * p.drag + p.gravity;
+          p.x += p.vx;
+          p.y += p.vy;
+          p.alpha -= p.decay;
+
+          if (p.alpha <= 0) {
+            this.particles.splice(i, 1);
+            continue;
+          }
+
+          ctx.fillStyle = `hsla(${p.hue}, 100%, 62%, ${p.alpha})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        for (let i = this.shockwaves.length - 1; i >= 0; i--) {
+          const s = this.shockwaves[i];
+          s.radius += (s.maxRadius - s.radius) * 0.14;
+          s.alpha *= 0.91;
+
+          if (s.alpha < 0.02) {
+            this.shockwaves.splice(i, 1);
+            continue;
+          }
+
+          ctx.strokeStyle = `hsla(${s.hue}, 100%, 70%, ${s.alpha})`;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        this.drawSpectrum(energy);
+
+        // Animated Count-Up Banner during takeover window
+        if (now < this.endTime) {
+          this.bannerScale += (1 - this.bannerScale) * 0.15;
+          this.displayedAmount += (this.targetAmount - this.displayedAmount) * 0.12;
+          if (Math.abs(this.targetAmount - this.displayedAmount) < 0.5) {
+            this.displayedAmount = this.targetAmount;
+          }
+
+          const pulse = 1 + energy * 0.1;
+          ctx.save();
+          ctx.translate(this.width * 0.5, this.height * 0.44);
+          ctx.scale(this.bannerScale * pulse, this.bannerScale * pulse);
+
+          ctx.font = `900 ${Math.min(56, Math.max(28, this.width * 0.058))}px Orbitron, sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#ffffff';
+          ctx.shadowColor = 'rgba(245, 158, 11, 0.95)';
+          ctx.shadowBlur = 28;
+          ctx.fillText(this.bannerTitle, 0, 0);
+
+          ctx.font = `900 ${Math.min(34, Math.max(18, this.width * 0.036))}px Orbitron, sans-serif`;
+          ctx.fillStyle = '#fde047';
+          ctx.shadowColor = 'rgba(234, 88, 12, 0.9)';
+          ctx.shadowBlur = 18;
+          ctx.fillText(`+${this.displayedAmount.toFixed(2)}`, 0, 44);
+          ctx.restore();
+        }
+
+        ctx.restore();
+
+        if (now > this.endTime && this.entities.length === 0 && this.particles.length === 0 && this.shockwaves.length === 0) {
+          this.active = false;
+          ctx.clearRect(0, 0, this.width, this.height);
+          return;
+        }
+
+        requestAnimationFrame(() => this.loop());
+      }
+    }
+
+    /**
+     * ============================================================================
+     * 3. REALISTIC 5x3 VIDEO SLOT RENDERER & PAYLINE ENGINE
+     * Includes individual tap/click-to-stop per reel, wilds, frequent bonus
+     * triggers, short animated bonus clips, laser paylines, and symbol hit pulses.
+     * ============================================================================
+     */
+    const SYMBOLS = [
+      { id: 'crown',   icon: '👑', name: 'Crown',   mult3: 10, mult4: 25, mult5: 50, color: '#fbbf24', weight: 4 },
+      { id: 'diamond', icon: '💎', name: 'Diamond', mult3: 6,  mult4: 15, mult5: 25, color: '#38bdf8', weight: 5 },
+      { id: 'bonus',   icon: '🌟', name: 'Scatter', mult3: 8,  mult4: 20, mult5: 40, color: '#e879f9', weight: 5, isBonus: true },
+      { id: 'seven',   icon: '7️⃣', name: 'Seven',   mult3: 5,  mult4: 10, mult5: 15, color: '#fb7185', weight: 5 },
+      { id: 'bolt',    icon: '⚡', name: 'Wild',    mult3: 4,  mult4: 8,  mult5: 12, color: '#c084fc', weight: 6, isWild: true },
+      { id: 'clover',  icon: '🍀', name: 'Clover',  mult3: 2.5,mult4: 4,  mult5: 6,  color: '#34d399', weight: 6 }
+    ];
+
+    // 5 classic casino paylines across [reel 0..4] -> row (0=top, 1=mid, 2=bottom)
+    const PAYLINES = [
+      { id: 1, rows: [1, 1, 1, 1, 1], color: '#fbbf24' }, // Center Straight
+      { id: 2, rows: [0, 0, 0, 0, 0], color: '#38bdf8' }, // Top Straight
+      { id: 3, rows: [2, 2, 2, 2, 2], color: '#34d399' }, // Bottom Straight
+      { id: 4, rows: [0, 1, 2, 1, 0], color: '#f472b6' }, // V-Shape
+      { id: 5, rows: [2, 1, 0, 1, 2], color: '#a78bfa' }  // Inverted V
+    ];
+
+    // Weighted pool for realistic hit frequency
+    const SYMBOL_POOL = [];
+    SYMBOLS.forEach((sym) => {
+      for (let i = 0; i < sym.weight; i++) SYMBOL_POOL.push(sym);
+    });
+
+    function pickRandomSymbol() {
+      return SYMBOL_POOL[Math.floor(Math.random() * SYMBOL_POOL.length)];
+    }
+
+    class CosmicSlotMachine {
+      constructor(canvas, audio, onRoundSettled, onReelTap) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.audio = audio;
+        this.onRoundSettled = onRoundSettled;
+        this.onReelTap = onReelTap;
+
+        this.width = 0;
+        this.height = 0;
+        this.spinning = false;
+        this.tickAccumulator = 0;
+        this.failsafeTimer = null;
+        this.boardBounds = { padX: 20, padY: 20, boardW: 600, boardH: 300, reelW: 120, cellH: 100 };
+
+        // 5 reels, each holds 3 visible symbols + smooth vertical offset
+        this.reels = Array.from({ length: 5 }, () => ({
+          symbols: [pickRandomSymbol(), pickRandomSymbol(), pickRandomSymbol()],
+          targetSymbols: null,
+          offset: 0,
+          speed: 0,
+          state: 'idle', // 'idle' | 'spinning' | 'bouncing'
+          stopAt: 0,
+          bounceVelocity: 0,
+          anticipationGlow: 0,
+          tapFlash: 0
+        }));
+
+        this.winningLines = [];
+        this.winPulsePhase = 0;
+        this.pendingOutcome = null;
+        this.clipParticles = [];
+
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+        this.bindReelTouchAndMouse();
+        this.loop();
+      }
+
+      bindReelTouchAndMouse() {
+        const handlePointerDown = (clientX, clientY) => {
+          if (!this.spinning) return;
+          const rect = this.canvas.getBoundingClientRect();
+          const x = clientX - rect.left;
+          const y = clientY - rect.top;
+          const { padX, padY, boardW, boardH, reelW } = this.boardBounds;
+
+          if (x >= padX && x <= padX + boardW && y >= padY && y <= padY + boardH) {
+            const reelIndex = Math.min(4, Math.max(0, Math.floor((x - padX) / reelW)));
+            this.stopSingleReel(reelIndex);
+          }
+        };
+
+        this.canvas.addEventListener('mousedown', (e) => {
+          if (e.button !== 0) return;
+          handlePointerDown(e.clientX, e.clientY);
+        });
+
+        this.canvas.addEventListener(
+          'touchstart',
+          (e) => {
+            if (!this.spinning) return;
+            e.preventDefault();
+            for (let i = 0; i < e.changedTouches.length; i++) {
+              const t = e.changedTouches[i];
+              handlePointerDown(t.clientX, t.clientY);
+            }
+          },
+          { passive: false }
+        );
+      }
+
+      stopSingleReel(reelIndex) {
+        const reel = this.reels[reelIndex];
+        if (!reel || reel.state !== 'spinning') return;
+
+        reel.symbols = [...reel.targetSymbols];
+        reel.offset = -24;
+        reel.bounceVelocity = 7.5;
+        reel.state = 'bouncing';
+        reel.isTeaseTarget = false;
+        reel.tapFlash = 1.0;
+
+        this.audio.playReelStop(reelIndex, true);
+        this.spawnReelLockSparks(reelIndex);
+        if (this.onReelTap) this.onReelTap(reelIndex);
+      }
+
+      spawnReelLockSparks(reelIndex) {
+        const { padX, padY, boardH, reelW } = this.boardBounds;
+        const cx = padX + reelIndex * reelW + reelW * 0.5;
+        const cy = padY + boardH * 0.5;
+        for (let i = 0; i < 18; i++) {
+          const angle = (Math.PI * 2 * i) / 18 + Math.random() * 0.2;
+          const speed = 2 + Math.random() * 5.5;
+          this.clipParticles.push({
+            x: cx,
+            y: cy + (Math.random() - 0.5) * boardH * 0.7,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            alpha: 1,
+            size: 2.5 + Math.random() * 2.5,
+            color: i % 2 === 0 ? '#38bdf8' : '#fbbf24'
+          });
+        }
+      }
+
+      drawRoundedBox(ctx, x, y, w, h, r) {
+        const radius = Math.max(0, Math.min(r, w * 0.5, h * 0.5));
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + w - radius, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+        ctx.lineTo(x + w, y + h - radius);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+        ctx.lineTo(x + radius, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+      }
+
+      resize() {
+        const rect = this.canvas.parentElement.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        this.width = Math.max(300, rect.width || this.canvas.clientWidth || 640);
+        this.height = Math.max(180, rect.height || this.canvas.clientHeight || 360);
+        this.canvas.width = Math.floor(this.width * dpr);
+        this.canvas.height = Math.floor(this.height * dpr);
+        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      forceSettleNow() {
+        if (!this.spinning || !this.pendingOutcome) return;
+        this.reels.forEach((reel) => {
+          if (reel.targetSymbols) {
+            reel.symbols = [...reel.targetSymbols];
+          }
+          reel.offset = 0;
+          reel.bounceVelocity = 0;
+          reel.state = 'idle';
+        });
+        this.spinning = false;
+        const settled = this.pendingOutcome;
+        this.pendingOutcome = null;
+        this.winningLines = settled.hits;
+        this.onRoundSettled(settled);
+      }
+
+      /**
+       * Evaluates 5 paylines (supporting Lightning Wilds) + Scatter Bonus Stars
+       */
+      evaluateGrid(grid, bet) {
+        const lineBet = bet / PAYLINES.length;
+        const hits = [];
+        let totalPayout = 0;
+
+        // Count Scatter Bonus symbols anywhere on the 5x3 board
+        let bonusCount = 0;
+        let wildCount = 0;
+        for (let r = 0; r < 5; r++) {
+          for (let row = 0; row < 3; row++) {
+            if (grid[r][row].isBonus) bonusCount++;
+            if (grid[r][row].isWild) wildCount++;
+          }
+        }
+
+        for (const line of PAYLINES) {
+          // Determine leading non-wild symbol on payline
+          let baseSym = grid[0][line.rows[0]];
+          if (baseSym.isWild) {
+            for (let r = 1; r < 5; r++) {
+              const candidate = grid[r][line.rows[r]];
+              if (!candidate.isWild && !candidate.isBonus) {
+                baseSym = candidate;
+                break;
+              }
+            }
+          }
+
+          if (baseSym.isBonus) continue;
+
+          let matchCount = 0;
+          for (let r = 0; r < 5; r++) {
+            const cell = grid[r][line.rows[r]];
+            if (cell.id === baseSym.id || cell.isWild) {
+              matchCount++;
+            } else {
+              break;
+            }
+          }
+
+          if (matchCount >= 3) {
+            const mult = matchCount === 5 ? baseSym.mult5 : matchCount === 4 ? baseSym.mult4 : baseSym.mult3;
+            const winAmount = Number((lineBet * mult * 5).toFixed(2));
+            totalPayout += winAmount;
+            hits.push({
+              line,
+              symbol: baseSym,
+              count: matchCount,
+              payout: winAmount
+            });
+          }
+        }
+
+        // Bonus feature determination (triggers frequently for lively arcade pacing)
+        let bonusEvent = null;
+        if (bonusCount >= 3) {
+          const bonusAward = Number((bet * (bonusCount * 4)).toFixed(2));
+          totalPayout += bonusAward;
+          bonusEvent = {
+            type: 'SCATTER_NOVA',
+            icon: '🌟',
+            title: `${bonusCount}x STAR SCATTER BONUS!`,
+            subtitle: `Supernova Feature +${bonusAward.toFixed(2)} Credits`,
+            isMega: true
+          };
+        } else if (wildCount >= 3 && totalPayout > 0) {
+          const surge = Number((totalPayout * 0.5).toFixed(2));
+          totalPayout += surge;
+          bonusEvent = {
+            type: 'LIGHTNING_WILD',
+            icon: '⚡',
+            title: 'LIGHTNING WILD SURGE!',
+            subtitle: `${wildCount} Wilds Boosted Payout +50% (+${surge.toFixed(2)})`,
+            isMega: totalPayout >= bet * 6
+          };
+        } else if (hits.length >= 2) {
+          bonusEvent = {
+            type: 'MULTI_LINE_COMBO',
+            icon: '🔥',
+            title: `${hits.length}-LINE COSMIC COMBO!`,
+            subtitle: `Multi-Payline Strike • +${totalPayout.toFixed(2)} Credits`,
+            isMega: totalPayout >= bet * 6
+          };
+        }
+
+        return {
+          grid,
+          hits,
+          bonusEvent,
+          totalPayout: Number(totalPayout.toFixed(2)),
+          multiplier: Number((totalPayout / bet).toFixed(2))
+        };
+      }
+
+      spin({ bet, turbo = false, forceBigWin = false }) {
+        if (this.spinning) return;
+        this.spinning = true;
+        this.winningLines = [];
+
+        // Generate outcome grid with boosted bonus & wild excitement (~45% feature/hit rate)
+        const grid = Array.from({ length: 5 }, () => [
+          pickRandomSymbol(),
+          pickRandomSymbol(),
+          pickRandomSymbol()
+        ]);
+
+        const roll = Math.random();
+        if (forceBigWin) {
+          const hero = Math.random() > 0.4 ? SYMBOLS[0] : SYMBOLS[1];
+          for (let r = 0; r < 5; r++) grid[r][1] = hero;
+          grid[1][0] = SYMBOLS[2];
+          grid[2][2] = SYMBOLS[2];
+          grid[3][0] = SYMBOLS[2];
+        } else if (roll < 0.22) {
+          // Frequent Scatter Bonus event (3 Star Scatters across reels)
+          const scatterCols = [0, 1, 2, 3, 4].sort(() => Math.random() - 0.5).slice(0, 3);
+          scatterCols.forEach((c) => {
+            grid[c][Math.floor(Math.random() * 3)] = SYMBOLS[2]; // 🌟 Scatter
+          });
+        } else if (roll < 0.44) {
+          // Frequent Wild-assisted winning combo
+          const targetRow = Math.floor(Math.random() * 3);
+          const sym = SYMBOLS[Math.floor(Math.random() * 4)];
+          grid[0][targetRow] = sym;
+          grid[1][targetRow] = SYMBOLS[4]; // ⚡ Wild
+          grid[2][targetRow] = sym;
+          if (Math.random() > 0.45) grid[3][targetRow] = SYMBOLS[4];
+        }
+
+        const outcome = this.evaluateGrid(grid, bet);
+        this.pendingOutcome = outcome;
+
+        const hasTease = !turbo && (
+          (grid[0][1].id === grid[1][1].id && grid[1][1].id === grid[2][1].id) ||
+          outcome.bonusEvent !== null
+        );
+
+        const now = performance.now();
+        // Slightly longer spin window so the player has plenty of time to tap/click individual reels!
+        const baseDelay = turbo ? 450 : 1100;
+        const stepDelay = turbo ? 140 : 420;
+
+        this.reels.forEach((reel, idx) => {
+          reel.targetSymbols = grid[idx];
+          reel.state = 'spinning';
+          reel.speed = turbo ? 44 : 30;
+          reel.offset = 0;
+          reel.anticipationGlow = 0;
+          reel.tapFlash = 0;
+
+          let extraSuspense = 0;
+          if (hasTease && idx >= 3) {
+            extraSuspense = idx === 3 ? 420 : 950;
+          }
+          reel.stopAt = now + baseDelay + idx * stepDelay + extraSuspense;
+          reel.isTeaseTarget = hasTease && idx >= 3;
+        });
+
+        clearTimeout(this.failsafeTimer);
+        const maxDuration = baseDelay + 4 * stepDelay + (hasTease ? 950 : 0) + 700;
+        this.failsafeTimer = setTimeout(() => {
+          if (this.spinning) this.forceSettleNow();
+        }, maxDuration);
+      }
+
+      loop() {
+        try {
+          if (this.width <= 0 || this.height <= 0) {
+            this.resize();
+          }
+          const now = performance.now();
+          const ctx = this.ctx;
+          const w = this.width;
+          const h = this.height;
+
+          ctx.clearRect(0, 0, w, h);
+
+          // Cabinet inner board geometry
+          const padX = Math.max(16, w * 0.06);
+          const padY = Math.max(18, h * 0.08);
+          const boardW = Math.max(120, w - padX * 2);
+          const boardH = Math.max(90, h - padY * 2 - 18);
+          const reelW = boardW / 5;
+          const cellH = boardH / 3;
+          this.boardBounds = { padX, padY, boardW, boardH, reelW, cellH };
+
+          // Outer neon cabinet bezel
+          ctx.save();
+          ctx.fillStyle = 'rgba(7, 12, 26, 0.94)';
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.35)';
+          ctx.lineWidth = 2;
+          this.drawRoundedBox(ctx, padX - 6, padY - 6, boardW + 12, boardH + 12, 18);
+          ctx.fill();
+          ctx.stroke();
+
+          // Clip inside reel window
+          this.drawRoundedBox(ctx, padX, padY, boardW, boardH, 14);
+          ctx.clip();
+
+          let activeReels = 0;
+          let spunDistance = 0;
+
+          this.reels.forEach((reel, rIdx) => {
+            const rx = padX + rIdx * reelW;
+
+            // Reel column subtle alternating backdrop
+            ctx.fillStyle = rIdx % 2 === 0 ? 'rgba(15, 23, 42, 0.85)' : 'rgba(11, 18, 34, 0.92)';
+            ctx.fillRect(rx, padY, reelW, boardH);
+
+            // Tap-lock flash effect when user manually stops a reel
+            if (reel.tapFlash > 0.02) {
+              ctx.fillStyle = `rgba(56, 189, 248, ${0.32 * reel.tapFlash})`;
+              ctx.fillRect(rx, padY, reelW, boardH);
+              reel.tapFlash *= 0.86;
+            }
+
+            // Anticipation highlight glow on suspense reels
+            if (reel.state === 'spinning' && reel.isTeaseTarget && now > reel.stopAt - 950) {
+              reel.anticipationGlow = Math.min(1, reel.anticipationGlow + 0.06);
+              const grad = ctx.createLinearGradient(rx, padY, rx, padY + boardH);
+              grad.addColorStop(0, `rgba(245, 158, 11, ${0.28 * reel.anticipationGlow})`);
+              grad.addColorStop(0.5, `rgba(234, 88, 12, ${0.42 * reel.anticipationGlow})`);
+              grad.addColorStop(1, `rgba(245, 158, 11, ${0.28 * reel.anticipationGlow})`);
+              ctx.fillStyle = grad;
+              ctx.fillRect(rx, padY, reelW, boardH);
+            }
+
+            // Update reel physics
+            if (reel.state === 'spinning') {
+              activeReels++;
+              reel.offset += reel.speed;
+              spunDistance += reel.speed;
+
+              const safeCellH = Math.max(24, cellH);
+              while (reel.offset >= safeCellH) {
+                reel.offset -= safeCellH;
+                reel.symbols.pop();
+                reel.symbols.unshift(pickRandomSymbol());
+              }
+
+              if (now >= reel.stopAt) {
+                reel.symbols = [...reel.targetSymbols];
+                reel.offset = -22;
+                reel.bounceVelocity = 6.5;
+                reel.state = 'bouncing';
+                this.audio.playReelStop(rIdx, reel.isTeaseTarget);
+              }
+            } else if (reel.state === 'bouncing') {
+              activeReels++;
+              reel.offset += reel.bounceVelocity;
+              reel.bounceVelocity *= 0.65;
+              if (Math.abs(reel.offset) < 0.6 && Math.abs(reel.bounceVelocity) < 0.6) {
+                reel.offset = 0;
+                reel.state = 'idle';
+              }
+            }
+
+            // Draw visible symbols (+1 buffer top & bottom during spin)
+            const startRow = reel.state === 'spinning' ? -1 : 0;
+            const endRow = reel.state === 'spinning' ? 3 : 2;
+            const fontSize = Math.floor(Math.min(reelW * 0.52, cellH * 0.56));
+
+            for (let row = startRow; row <= endRow; row++) {
+              const sym = row < 0 || row > 2 ? pickRandomSymbol() : reel.symbols[row];
+              const cx = rx + reelW * 0.5;
+              const cy = padY + row * cellH + cellH * 0.5 + reel.offset;
+
+              // Highlight winning payline cells or Scatter Bonus stars
+              let isWinningCell = false;
+              let cellHighlightColor = '#fbbf24';
+              if (this.winningLines.length > 0 && reel.state === 'idle') {
+                for (const hit of this.winningLines) {
+                  if (rIdx < hit.count && hit.line.rows[rIdx] === row) {
+                    isWinningCell = true;
+                    cellHighlightColor = hit.line.color;
+                    break;
+                  }
+                }
+              }
+              if (sym.isBonus && reel.state === 'idle' && this.pendingOutcome === null && this.hasActiveBonus) {
+                isWinningCell = true;
+                cellHighlightColor = '#e879f9';
+              }
+
+              ctx.save();
+              ctx.translate(cx, cy);
+
+              if (isWinningCell) {
+                const pulse = 1 + Math.sin(this.winPulsePhase) * 0.15;
+                ctx.scale(pulse, pulse);
+
+                const halo = ctx.createRadialGradient(0, 0, 4, 0, 0, cellH * 0.44);
+                halo.addColorStop(0, `${cellHighlightColor}77`);
+                halo.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = halo;
+                ctx.beginPath();
+                ctx.arc(0, 0, cellH * 0.44, 0, Math.PI * 2);
+                ctx.fill();
+              }
+
+              ctx.font = `${fontSize}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillText(sym.icon, 0, 2);
+              ctx.restore();
+            }
+
+            // Interactive "TAP STOP" badge on spinning reels
+            if (reel.state === 'spinning') {
+              ctx.fillStyle = 'rgba(56, 189, 248, 0.85)';
+              ctx.font = '700 10px Orbitron, sans-serif';
+              ctx.textAlign = 'center';
+              ctx.fillText(`STOP ${rIdx + 1}`, rx + reelW * 0.5, padY + 14);
+            }
+
+            // Reel divider line
+            if (rIdx > 0) {
+              ctx.strokeStyle = 'rgba(148, 163, 184, 0.14)';
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.moveTo(rx, padY);
+              ctx.lineTo(rx, padY + boardH);
+              ctx.stroke();
+            }
+          });
+
+          // Render manual-stop spark bursts
+          for (let i = this.clipParticles.length - 1; i >= 0; i--) {
+            const p = this.clipParticles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.alpha -= 0.045;
+            if (p.alpha <= 0) {
+              this.clipParticles.splice(i, 1);
+              continue;
+            }
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = p.alpha;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+          }
+
+          // Mechanical reel tick sound throttled cleanly
+          if (spunDistance > 0) {
+            this.tickAccumulator += spunDistance;
+            if (this.tickAccumulator > 220) {
+              this.tickAccumulator = 0;
+              this.audio.playReelTick();
+            }
+          }
+
+          // Top & bottom inner shadow vignettes for cylinder depth
+          const topShade = ctx.createLinearGradient(0, padY, 0, padY + 28);
+          topShade.addColorStop(0, 'rgba(2, 6, 23, 0.85)');
+          topShade.addColorStop(1, 'rgba(2, 6, 23, 0)');
+          ctx.fillStyle = topShade;
+          ctx.fillRect(padX, padY, boardW, 28);
+
+          const botShade = ctx.createLinearGradient(0, padY + boardH - 28, 0, padY + boardH);
+          botShade.addColorStop(0, 'rgba(2, 6, 23, 0)');
+          botShade.addColorStop(1, 'rgba(2, 6, 23, 0.85)');
+          ctx.fillStyle = botShade;
+          ctx.fillRect(padX, padY + boardH - 28, boardW, 28);
+
+          // Draw animated laser paylines when wins settle
+          if ((this.winningLines.length > 0 || this.hasActiveBonus) && activeReels === 0) {
+            this.winPulsePhase += 0.13;
+            ctx.globalCompositeOperation = 'lighter';
+
+            for (const hit of this.winningLines) {
+              ctx.strokeStyle = hit.line.color;
+              ctx.shadowColor = hit.line.color;
+              ctx.shadowBlur = 14;
+              ctx.lineWidth = 4;
+              ctx.lineCap = 'round';
+              ctx.lineJoin = 'round';
+
+              ctx.beginPath();
+              for (let r = 0; r < hit.count; r++) {
+                const px = padX + r * reelW + reelW * 0.5;
+                const py = padY + hit.line.rows[r] * cellH + cellH * 0.5;
+                if (r === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+              }
+              ctx.stroke();
+            }
+            ctx.globalCompositeOperation = 'source-over';
+          }
+
+          ctx.restore();
+
+          // Check if spin just completed
+          if (this.spinning && activeReels === 0 && this.pendingOutcome) {
+            clearTimeout(this.failsafeTimer);
+            this.spinning = false;
+            const settled = this.pendingOutcome;
+            this.pendingOutcome = null;
+            this.winningLines = settled.hits;
+            this.hasActiveBonus = Boolean(settled.bonusEvent);
+            this.onRoundSettled(settled);
+          }
+        } catch (err) {
+          console.error('Slot render loop error:', err);
+          if (this.spinning) {
+            this.forceSettleNow();
+          }
+        }
+
+        requestAnimationFrame(() => this.loop());
+      }
+
+      slamStop() {
+        if (!this.spinning) return;
+        const now = performance.now();
+        this.reels.forEach((reel, idx) => {
+          if (reel.state === 'spinning') {
+            reel.stopAt = now + idx * 45;
+            reel.isTeaseTarget = false;
+          }
+        });
+      }
+    }
+
+    /**
+     * ============================================================================
+     * 4. GAME CONTROLLER & UI WIRING
+     * Connects user actions, manual reel stops, bonus clips, and FX takeover.
+     * ============================================================================
+     */
+    const audio = new CasinoAudioEngine();
+    const fxTakeover = new FullscreenTakeoverFX(document.getElementById('fx-takeover-canvas'), audio);
+
+    const state = {
+      balance: 1000.0,
+      bet: 10,
+      turbo: false,
+      autoSpin: false,
+      roundSeq: 0
+    };
+
+    const hudBalance = document.getElementById('hud-balance');
+    const hudWin = document.getElementById('hud-win');
+    const hudReceipt = document.getElementById('hud-receipt');
+    const statusEl = document.getElementById('cabinet-status');
+    const spinBtn = document.getElementById('btn-spin');
+    const turboBtn = document.getElementById('btn-turbo');
+    const autoBtn = document.getElementById('btn-auto');
+
+    const bonusOverlay = document.getElementById('bonus-clip-overlay');
+    const bonusCard = document.getElementById('bonus-clip-card');
+    const bonusIcon = document.getElementById('bonus-clip-icon');
+    const bonusTitle = document.getElementById('bonus-clip-title');
+    const bonusSub = document.getElementById('bonus-clip-sub');
+    let bonusClipTimer = null;
+
+    function playBonusClip(bonusEvent) {
+      if (!bonusEvent) return;
+      clearTimeout(bonusClipTimer);
+      bonusIcon.textContent = bonusEvent.icon;
+      bonusTitle.textContent = bonusEvent.title;
+      bonusSub.textContent = bonusEvent.subtitle;
+
+      bonusOverlay.classList.remove('opacity-0');
+      bonusOverlay.classList.add('opacity-100');
+      bonusCard.classList.remove('scale-90');
+      bonusCard.classList.add('scale-100');
+
+      bonusClipTimer = setTimeout(() => {
+        bonusOverlay.classList.remove('opacity-100');
+        bonusOverlay.classList.add('opacity-0');
+        bonusCard.classList.remove('scale-100');
+        bonusCard.classList.add('scale-90');
+      }, 1850);
+    }
+
+    function syncHUD() {
+      hudBalance.textContent = state.balance.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+      spinBtn.textContent = `SPIN (${state.bet})`;
+    }
+
+    const slotMachine = new CosmicSlotMachine(
+      document.getElementById('slot-cabinet-canvas'),
+      audio,
+      (outcome) => {
+        spinBtn.disabled = false;
+        syncHUD();
+
+        if (outcome.totalPayout > 0) {
+          state.balance = Number((state.balance + outcome.totalPayout).toFixed(2));
+          hudWin.textContent = outcome.totalPayout.toFixed(2);
+          syncHUD();
+
+          if (outcome.bonusEvent) {
+            playBonusClip(outcome.bonusEvent);
+            statusEl.textContent = `${outcome.bonusEvent.title} — WON +${outcome.totalPayout.toFixed(2)}!`;
+          } else {
+            const topHit = [...outcome.hits].sort((a, b) => b.payout - a.payout)[0];
+            statusEl.textContent = `LINE ${topHit.line.id} HIT (${topHit.count}x ${topHit.symbol.icon}) — WON +${outcome.totalPayout.toFixed(2)}!`;
+          }
+
+          audio.playWinChime(outcome.multiplier);
+
+          // Trigger Full-Screen FX Takeover on Big Wins or Mega Bonus Triggers
+          if (outcome.multiplier >= 6 || outcome.totalPayout >= 80 || outcome.bonusEvent?.isMega) {
+            const label = outcome.bonusEvent ? outcome.bonusEvent.title : 'COSMIC BIG WIN!';
+            fxTakeover.trigger({
+              title: label,
+              payout: outcome.totalPayout,
+              durationMs: 4200
+            });
+          }
+        } else {
+          statusEl.textContent = 'No match — Press SPIN or tap reels to stop manually!';
+        }
+
+        // ONLY continue spinning if Auto-Spin was explicitly turned ON by the user
+        if (state.autoSpin === true) {
+          if (state.balance >= state.bet) {
+            const pause = outcome.totalPayout > 0 ? 1450 : 520;
+            setTimeout(() => {
+              if (state.autoSpin === true && !slotMachine.spinning) {
+                triggerSpin(false);
+              }
+            }, pause);
+          } else {
+            state.autoSpin = false;
+            autoBtn.textContent = '🔄 Auto: OFF';
+            autoBtn.classList.remove('border-emerald-500/50', 'text-emerald-300');
+          }
+        }
+      },
+      (stoppedReelIdx) => {
+        const remaining = slotMachine.reels.filter((r) => r.state === 'spinning').length;
+        if (remaining > 0) {
+          statusEl.textContent = `Reel ${stoppedReelIdx + 1} locked! Tap remaining ${remaining} reel(s) to stop!`;
+        }
+      }
+    );
+
+    function triggerSpin(forceBigWin = false) {
+      if (slotMachine.spinning) {
+        slotMachine.slamStop();
+        return;
+      }
+      if (state.balance < state.bet) {
+        statusEl.textContent = 'Insufficient credits — Click Reset to top up.';
+        return;
+      }
+
+      try {
+        audio.unlock();
+      } catch (_) {}
+
+      slotMachine.hasActiveBonus = false;
+      state.roundSeq += 1;
+      state.balance = Number((state.balance - state.bet).toFixed(2));
+      hudWin.textContent = '0.00';
+      syncHUD();
+
+      const receiptId = `spn_${Date.now().toString(36)}_${state.roundSeq}`;
+      hudReceipt.textContent = receiptId;
+      statusEl.textContent = 'Tap any reel column to stop it individually, or click STOP ALL!';
+      spinBtn.textContent = 'STOP ALL';
+
+      slotMachine.spin({
+        bet: state.bet,
+        turbo: state.turbo,
+        forceBigWin
+      });
+    }
+
+    // Bet selector buttons
+    document.querySelectorAll('.bet-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (slotMachine.spinning) return;
+        state.bet = Number(btn.dataset.bet);
+        document.querySelectorAll('.bet-btn').forEach((b) => {
+          b.className = 'bet-btn px-3 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white';
+        });
+        btn.className = 'bet-btn px-3 py-2 rounded-lg text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40';
+        syncHUD();
+      });
+    });
+
+    // Turbo toggle
+    turboBtn.addEventListener('click', () => {
+      state.turbo = !state.turbo;
+      turboBtn.textContent = state.turbo ? '⚡ Turbo: ON' : '⚡ Turbo: OFF';
+      turboBtn.classList.toggle('border-cyan-500/50', state.turbo);
+      turboBtn.classList.toggle('text-cyan-300', state.turbo);
+    });
+
+    // Auto-Spin toggle
+    autoBtn.addEventListener('click', () => {
+      state.autoSpin = !state.autoSpin;
+      autoBtn.textContent = state.autoSpin ? '🔄 Auto: ON' : '🔄 Auto: OFF';
+      autoBtn.classList.toggle('border-emerald-500/50', state.autoSpin);
+      autoBtn.classList.toggle('text-emerald-300', state.autoSpin);
+      if (state.autoSpin && !slotMachine.spinning) {
+        triggerSpin(false);
+      }
+    });
+
+    // Spin & Demo Big Win triggers
+    spinBtn.addEventListener('click', () => triggerSpin(false));
+    document.getElementById('btn-force-jackpot').addEventListener('click', () => triggerSpin(true));
+
+    // Spacebar shortcut for fast tactile play
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && document.activeElement?.tagName !== 'BUTTON') {
+        e.preventDefault();
+        triggerSpin(false);
+      }
+    });
+
+    // Sound toggle
+    document.getElementById('btn-sound').addEventListener('click', () => {
+      const muted = audio.toggleMute();
+      document.getElementById('icon-sound-on').classList.toggle('hidden', muted);
+      document.getElementById('icon-sound-off').classList.toggle('hidden', !muted);
+    });
+
+    // Reset demo credits
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      if (slotMachine.spinning) return;
+      state.autoSpin = false;
+      autoBtn.textContent = '🔄 Auto: OFF';
+      autoBtn.classList.remove('border-emerald-500/50', 'text-emerald-300');
+      state.balance = 1000.0;
+      hudWin.textContent = '0.00';
+      hudReceipt.textContent = 'RESET';
+      statusEl.textContent = 'Balance restored to 1,000.00 credits.';
+      syncHUD();
+    });
+  </script>
+</body>
+</html>
