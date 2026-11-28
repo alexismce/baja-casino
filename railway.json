@@ -1,10 +1,29 @@
 {
-    "$schema": "https://railway.com/railway.schema.json",
-    "deploy": {
-        "startCommand": "npm run server",
-        "healthcheckPath": "/api/health",
-        "healthcheckTimeout": 60,
-        "restartPolicyType": "ON_FAILURE",
-        "restartPolicyMaxRetries": 3
-    }
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "RAILPACK",
+    "buildEnvironment": "V3"
+  },
+  "deploy": {
+    "runtime": "V2",
+    "numReplicas": 1,
+    "startCommand": "node server.js",
+    "overlapSeconds": 0,
+    "limitOverride": {
+      "containers": {
+        "cpu": 8
+      }
+    },
+    "healthcheckPath": "/health",
+    "sleepApplication": false,
+    "useLegacyStacker": false,
+    "ipv6EgressEnabled": true,
+    "multiRegionConfig": {
+      "us-west2": {
+        "numReplicas": 1
+      }
+    },
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  }
 }
