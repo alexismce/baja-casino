@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#121212">
+    <title>Lucky Lounge — Operator Console</title>
+    <link rel="stylesheet" href="/admin.css">
+    <script src="/admin.js" defer></script>
+  </head>
+  <body>
+    <main>
+      <a href="/">← Lucky Lounge</a>
+      <p class="eyebrow">PRIVATE OPERATOR TOOLS</p>
+      <h1 class="font-display">Operator console</h1>
+      <p class="notice">Virtual-credit demo metrics only. This page is not a security boundary; all controls require the server-side ADMIN_TOKEN.</p>
+
+      <form id="access-form">
+        <label for="admin-token">Admin token</label>
+        <div class="row"><input id="admin-token" type="password" autocomplete="off" minlength="32" required><button id="unlock-dashboard" type="submit">Unlock dashboard</button></div>
+      </form>
+      <p id="message" role="status" aria-live="polite" aria-atomic="true"></p>
+
+      <section id="dashboard" hidden>
+        <div class="admin-tabs" role="tablist" aria-label="Operator console sections">
+          <button id="overview-tab" type="button" role="tab" aria-selected="true" aria-controls="overview-panel" data-admin-tab="overview">Overview</button>
+          <button id="health-tab" type="button" role="tab" aria-selected="false" aria-controls="health-panel" data-admin-tab="health">Health</button>
+          <button id="credits-tab" type="button" role="tab" aria-selected="false" aria-controls="credits-panel" data-admin-tab="credits">Credits</button>
+        </div>
+
+        <section id="overview-panel" class="admin-panel" role="tabpanel" aria-labelledby="overview-tab">
+          <div class="section-title"><h2 class="font-display">Live metrics</h2><button id="refresh" type="button" class="secondary">Refresh</button></div>
+          <p id="captured-at" class="muted"></p>
+          <div id="metrics" class="metrics"></div>
+          <h2 class="font-display">Slot reel weights</h2>
+          <p class="muted">Weights apply to both slot games and take effect immediately in this server process. Estimates include the 10 fixed paylines and 3×3 pattern bonus; the Fortune estimate also includes its wheel. They are theoretical estimates, not guarantees.</p>
+          <form id="weights-form">
+            <div class="weights">
+              <label>Seven<input name="SEVEN" type="number" min="1" max="100" step="1" required></label>
+              <label>Watermelon<input name="WATERMELON" type="number" min="1" max="100" step="1" required></label>
+              <label>Grapes<input name="GRAPES" type="number" min="1" max="100" step="1" required></label>
+              <label>Orange<input name="ORANGE" type="number" min="1" max="100" step="1" required></label>
+              <label>Cherry<input name="CHERRY" type="number" min="1" max="100" step="1" required></label>
+            </div>
+            <button id="apply-weights" type="submit">Apply slot weights</button>
+          </form>
+        </section>
+
+        <section id="health-panel" class="admin-panel" role="tabpanel" aria-labelledby="health-tab" hidden>
+          <div class="section-title"><div><h2 class="font-display">Project health</h2><p class="muted">Server, runtime and SQLite checks.</p></div><button id="refresh-health" type="button" class="secondary">Check health</button></div>
+          <div id="health-summary" class="health-summary" data-status="unknown">Not checked yet.</div>
+          <div id="health-details" class="metrics"></div>
+          <p id="health-captured-at" class="muted"></p>
+        </section>
+
+        <section id="credits-panel" class="admin-panel" role="tabpanel" aria-labelledby="credits-tab" hidden>
+          <div class="section-title"><div><h2 class="font-display">Manual credits</h2><p class="muted">Adds demo credits to an existing account. This action is recorded in the database.</p></div><button id="refresh-users" type="button" class="secondary">Refresh users</button></div>
+          <label>Find account<input id="user-search" type="search" placeholder="Email or display name" autocomplete="off"></label>
+          <div id="user-list" class="user-list" aria-live="polite"></div>
+          <form id="credits-form">
+            <label>Email<input id="credit-email" name="email" type="email" required autocomplete="off"></label>
+            <div class="credit-fields">
+              <label>Credits to add<input id="credit-amount" name="amount" type="number" min="1" max="100000" step="1" required></label>
+              <label>Audit note <span class="muted">(optional)</span><input id="credit-note" name="note" type="text" maxlength="120" placeholder="Reason for adjustment"></label>
+            </div>
+            <button id="apply-credits" type="submit">Add demo credits</button>
+          </form>
+          <div id="credit-result" class="health-summary" hidden></div>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>

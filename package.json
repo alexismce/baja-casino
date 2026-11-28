@@ -1,16 +1,29 @@
 {
-  "name": "baja-casino",
-  "version": "2.1.0",
-  "description": "Baja Casino 3D VIP Lounge with Roulette, Rising Rockets & Mega Slots",
-  "main": "server.js",
+  "name": "lucky-lounge-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A local, virtual-credit casino-style game demo.",
+  "type": "module",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22"
   },
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "server": "node server.js",
+    "start:headless": "node server.js",
+    "tray": "powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -STA -File ./scripts/lucky-lounge-tray.ps1",
+    "start:tray": "npm run tray",
+    "dev": "node --watch server.js",
+    "build:installer": "powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./installer/Build-Lucky-Lounge-Launcher.ps1",
+    "test": "node --test"
   },
   "dependencies": {
-    "express": "^4.21.2",
-    "socket.io": "^4.8.1"
+    "babylonjs": "^9.38.0",
+    "better-sqlite3": "^13.0.3",
+    "phaser": "^4.2.1",
+    "socket.io": "^4.8.4"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.8.4"
   }
 }

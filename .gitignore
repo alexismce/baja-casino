@@ -1,4 +1,9 @@
-
-
-#Ignore vscode AI rules
+node_modules/
+.env
+.env.*
+!.env.example
+.playwright-mcp/
+data/*.db*
+.vscode/
+installer/bin/
 .github/instructions/codacy.instructions.md

@@ -1,221 +1,236 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>BAJA CASINO | VIP 3D Resort &amp; Lounge</title>
-  <link rel="stylesheet" href="/css/casino.css" />
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.187.0/examples/jsm/"
-      }
-    }
-  </script>
-</head>
-<body class="lobby-mode">
-  <div id="stageContainer"></div>
-  <div id="status-announcer" class="sr-only" role="status" aria-live="polite"></div>
-
-  <header id="topBar">
-    <div class="brand-wrap" onclick="goLobby()">
-      <span class="brand-gem">◆</span>
-      <div>
-        <div class="brand-title">BAJA CASINO</div>
-        <div class="brand-sub"><span class="live-dot"></span> <span id="onlineCount">1</span> <span data-i18n="brand.subtitle">VIPs Online</span></div>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#101914">
+    <meta name="description" content="A polished casino-inspired game lounge with responsive tables, tactile animations, and virtual credits only.">
+    <title>Lucky Lounge — Demo Games</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="preload" as="image" href="/assets/casino-entrance.jpg">
+    <link rel="stylesheet" href="/loading.css">
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/socket.io/socket.io.js" defer></script>
+    <script src="/soundtracks.js" defer></script>
+    <script src="/app.js" defer></script>
+  </head>
+  <body class="premium-theme auth-loading">
+    <div id="app-loader" class="app-loader" role="status" aria-live="polite" aria-label="Loading Lucky Lounge">
+      <div class="app-loader-content">
+        <div class="app-loader-mark" aria-hidden="true">L</div>
+        <p class="app-loader-kicker">Lucky Lounge</p>
+        <h2>Opening the lounge</h2>
+        <p id="app-loader-status" class="app-loader-status">Preparing your virtual-credit session…</p>
+        <div class="app-loader-track" aria-hidden="true"><span id="app-loader-progress" class="app-loader-progress"></span></div>
+        <p class="app-loader-hint">Loading the catalog, account and live server connection</p>
+        <button id="app-loader-retry" class="app-loader-retry" type="button" hidden>Try again</button>
       </div>
     </div>
+    <a class="skip-link" href="#games">Skip to games</a>
+    <div class="page-shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="Lucky Lounge home">
+          <span class="brand-mark glint-effect">L</span>
+          <span class="brand-text">Lucky Lounge <sup class="demo-badge">DEMO</sup></span>
+        </a>
+        <div class="header-actions">
+          <div class="balance-card premium-glow" aria-live="polite">
+            <span class="balance-label">DEMO CREDITS</span>
+            <strong id="balance" class="font-display gold-foil-text">Loading…</strong>
+          </div>
+          <button id="account-open" class="header-button auth-state-control" type="button" hidden>Sign in</button>
+          <button id="account-create" class="header-button primary auth-state-control" type="button" hidden>Create account</button>
+          <button id="account-menu" class="header-button" type="button" hidden>My lounge</button>
+        </div>
+      </header>
 
-    <div class="header-right">
-      <button type="button" class="pill-btn" data-set-locale="es-MX" aria-pressed="false">ES</button>
-      <button type="button" class="pill-btn" data-set-locale="en" aria-pressed="false">EN</button>
-      <button id="sound-toggle" type="button" class="pill-btn" aria-pressed="true">Sound: On</button>
-      <button id="bonusBtn" class="pill-btn bonus-pill" onclick="claimBonus()" data-i18n="wallet.daily">+ RELOAD</button>
-      <div class="pill-btn wallet-pill">💰 <span id="chips">1000</span> <span data-i18n="wallet.label">Virtual credits</span></div>
+      <main>
+        <section class="hero">
+          <div class="hero-copy">
+            <p class="eyebrow"><span class="status-dot" id="connection-dot"></span> <span id="connection-status">CONNECTING TO GAME SERVER</span></p>
+            <h1 class="font-display">A little luck.<br><span class="gold-foil-text">A lot of atmosphere.</span></h1>
+            <p class="hero-description">A polished, casino-inspired game lounge with responsive tables, tactile animations, and optional synthesized music — always using demo credits.</p>
+            <div class="demo-note"><span aria-hidden="true">ⓘ</span> Demo only — credits have no cash value. No deposits or withdrawals.</div>
+            <div class="hero-actions">
+              <a class="hero-button arcade-style" href="#games">Explore games <span>↓</span></a>
+              <button id="hero-signup" class="hero-link" type="button">Save your progress <span>→</span></button>
+              <button id="sound-toggle" class="hero-link" type="button" aria-label="Disable interface sounds and lounge music" title="Disables synthesized interface sounds and lounge music" aria-pressed="true">Sound: on</button>
+              <label class="hero-volume-control" for="sound-volume">Volume <output id="sound-volume-value" for="sound-volume">70%</output>
+                <input id="sound-volume" type="range" min="0" max="100" step="5" value="70" aria-label="Interface sound and music volume">
+              </label>
+              <label class="music-track-control" for="music-track">Music
+                <select id="music-track"><option value="lounge">Gold Lounge</option><option value="velvet">Velvet Night</option><option value="midnight">Midnight Keys</option><option value="arcade">Arcade Lights</option><option value="neon">Neon Nights</option></select>
+              </label>
+            </div>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <div class="orbit orbit-one"></div>
+            <div class="orbit orbit-two"></div>
+            <div class="hero-chip">♠</div>
+            <span class="spark spark-one">✦</span><span class="spark spark-two">✧</span>
+          </div>
+        </section>
+
+        <section class="games-section" id="games" aria-labelledby="games-title">
+          <div class="section-heading">
+            <div><p class="eyebrow">EXPLORE THE LOUNGE</p><h2 class="font-display" id="games-title">Find your next game</h2></div>
+            <span class="table-count">06 GAMES OPEN</span>
+          </div>
+
+          <div class="game-browser">
+            <label class="game-search">
+              <span class="visually-hidden">Search games</span>
+              <span class="search-icon" aria-hidden="true">⌕</span>
+              <input id="game-search" type="search" placeholder="Search games" autocomplete="off">
+              <kbd aria-hidden="true">/</kbd>
+            </label>
+            <div class="game-filters" role="group" aria-label="Filter games by category">
+              <button class="game-filter active" type="button" data-game-filter="all" aria-pressed="true"><span aria-hidden="true">✦</span> All games</button>
+              <button class="game-filter" type="button" data-game-filter="slots" aria-pressed="false"><span aria-hidden="true">▤</span> Slots</button>
+              <button class="game-filter" type="button" data-game-filter="tables" aria-pressed="false"><span aria-hidden="true">♠</span> Tables</button>
+              <button class="game-filter" type="button" data-game-filter="quick" aria-pressed="false"><span aria-hidden="true">◉</span> Quick play</button>
+            </div>
+          </div>
+
+          <div class="game-grid" id="game-grid">
+            <article class="game-card slots-card premium-card" data-game-category="slots">
+              <div class="game-art slot-art" aria-hidden="true">
+                <img src="/client/assets/slots/cherry.svg" alt=""><img src="/client/assets/slots/watermelon.svg" alt=""><img src="/client/assets/slots/seven.svg" alt="">
+                <span class="art-kicker">LUCKY LOUNGE ORIGINAL</span>
+                <span class="art-title">Lucky<br>Slots</span>
+                <span class="art-caption">5 REELS · 10 LINES · CROSSWORD BONUS</span>
+              </div>
+              <div class="game-info"><div class="game-title-row"><h3 class="font-display">Lucky Slots</h3><span class="tag feature-tag">5 × 3 · 10 LINES</span></div><p>One machine with modern, classic and 3D reels, a pattern puzzle and an optional Fortune Wheel bonus.</p><a class="play-button" href="/client?game=slots">Play slots <span>→</span></a></div>
+            </article>
+            <article class="game-card blackjack-card premium-card" data-game-category="tables">
+              <div class="game-art card-art" aria-hidden="true">
+                <span class="playing-card red-card">♥<small>A</small></span><span class="playing-card">♠<small>K</small></span>
+                <span class="art-kicker">AT THE FELT</span>
+                <span class="art-title">Blackjack</span>
+                <span class="art-caption">PLAY YOUR HAND · BEAT THE DEALER</span>
+              </div>
+              <div class="game-info"><div class="game-title-row"><h3 class="font-display">Blackjack</h3><span class="tag feature-tag">SPLIT &amp; DOUBLE</span></div><p>Get closer to 21 than the dealer, with hit, stand, split, and double-down actions.</p><a class="play-button" href="/client?game=blackjack">Play blackjack <span>→</span></a></div>
+            </article>
+            <article class="game-card poker-card premium-card" data-game-category="tables">
+              <div class="game-art poker-art" aria-hidden="true">
+                <span class="playing-card red-card">♥<small>A</small></span><span class="playing-card">♦<small>K</small></span>
+                <span class="art-kicker">DRAW A BETTER HAND</span>
+                <span class="art-title">Video Poker</span>
+                <span class="art-caption">FIVE CARDS · YOUR CHOICE TO HOLD</span>
+              </div>
+              <div class="game-info"><div class="game-title-row"><h3 class="font-display">Video Poker</h3><span class="tag feature-tag">FIVE-CARD DRAW</span></div><p>Choose which cards to hold, draw replacements, and see how your hand matches the paytable.</p><a class="play-button" href="/client?game=poker">Play video poker <span>→</span></a></div>
+            </article>
+            <article class="game-card roulette-card premium-card" data-game-category="tables">
+              <div class="game-art roulette-art" aria-hidden="true">
+                <div class="roulette-wheel"><span>0</span><span>7</span><span>18</span></div>
+                <span class="art-kicker">PLACE YOUR NUMBER</span>
+                <span class="art-title">Roulette</span>
+                <span class="art-caption">EUROPEAN WHEEL · 0–36</span>
+              </div>
+              <div class="game-info"><div class="game-title-row"><h3 class="font-display">Roulette</h3><span class="tag">TABLE</span></div><p>Choose a number from 0 to 36; an exact hit pays 35:1.</p><a class="play-button" href="/client?game=roulette">Play roulette <span>→</span></a></div>
+            </article>
+            <article class="game-card coin-card premium-card" data-game-category="quick">
+              <div class="game-art coin-art" aria-hidden="true">
+                <div class="coin">✦</div><span class="coin-spark">✧</span>
+                <span class="art-kicker">CALL IT IN THE AIR</span>
+                <span class="art-title">Coin Toss</span>
+                <span class="art-caption">HEADS OR TAILS · QUICK ROUND</span>
+              </div>
+              <div class="game-info"><div class="game-title-row"><h3 class="font-display">Coin Toss</h3><span class="tag">QUICK PLAY</span></div><p>Call heads or tails. A correct call returns 2× your demo bet, including the stake.</p><a class="play-button" href="/client?game=coin">Play coin toss <span>→</span></a></div>
+            </article>
+            <article class="game-card dice-card premium-card" data-game-category="quick">
+              <div class="game-art dice-art" aria-hidden="true">
+                <div class="dice-face"><i></i><i></i><i></i><i></i><i></i></div>
+                <span class="art-kicker">ONE ROLL · ONE PICK</span>
+                <span class="art-title">Dice Roll</span>
+                <span class="art-caption">PICK A FACE FROM 1 TO 6</span>
+              </div>
+              <div class="game-info"><div class="game-title-row"><h3 class="font-display">Dice Roll</h3><span class="tag">QUICK PLAY</span></div><p>Pick one face. An exact hit returns 5× your demo bet, including the stake.</p><a class="play-button" href="/client?game=dice">Play dice roll <span>→</span></a></div>
+            </article>
+          </div>
+          <p id="game-empty-state" class="game-empty-state" hidden>No games match that search. Try another name or category.</p>
+          <p id="game-search-status" class="visually-hidden" aria-live="polite"></p>
+        </section>
+
+        <section class="community-section" id="community" aria-labelledby="community-title">
+          <div class="community-intro">
+            <p class="eyebrow">YOUR PROGRESS, YOUR PACE</p>
+            <h2 class="font-display" id="community-title">A lounge that remembers you</h2>
+            <p>Make an account to save virtual credits, collect low-pressure achievements, and choose whether to appear on the leaderboard.</p>
+            <p class="privacy-note">Email is used as your sign-in name only. This local demo does not send verification or recovery emails.</p>
+            <button id="community-signup" class="play-button arcade-style" type="button">Create a free account <span>→</span></button>
+          </div>
+          <div class="community-panels">
+            <section class="info-panel" aria-labelledby="bonus-title">
+              <div class="panel-heading"><span class="panel-icon">✦</span><div><p class="eyebrow">NO STREAKS, NO PRESSURE</p><h3 class="font-display" id="bonus-title">Daily demo grant</h3></div></div>
+              <p>Claim 100 virtual credits once per UTC day. Miss a day? Nothing resets and nothing is lost.</p>
+              <div id="reward-area"><button id="daily-reward" class="panel-button" type="button">Sign in to claim</button><span id="reward-status" class="panel-status" aria-live="polite"></span></div>
+            </section>
+            <section class="info-panel leaderboard-panel" aria-labelledby="leaderboard-title">
+              <div class="panel-heading"><span class="panel-icon">♛</span><div><p class="eyebrow">OPT-IN ONLY</p><h3 class="font-display" id="leaderboard-title">Top lounge scores</h3></div></div>
+              <p>Ranked by best virtual-credit balance, not by wagers placed.</p>
+              <ol id="leaderboard-list" class="leaderboard-list"><li class="empty-state">Loading the leaderboard…</li></ol>
+              <button id="share-lounge" class="share-button" type="button">Share the lounge <span>↗</span></button>
+            </section>
+          </div>
+        </section>
+
+        <section class="how-section" aria-labelledby="how-title">
+          <p class="eyebrow">HOW IT WORKS</p>
+          <h2 class="font-display" id="how-title">Simple, transparent, just for fun</h2>
+          <div class="how-grid">
+            <article><span>01</span><h3 class="font-display">Pick a table</h3><p>Try slots, blackjack, Video Poker, roulette, coin toss, or Dice Roll.</p></article>
+            <article><span>02</span><h3 class="font-display">Play with demo credits</h3><p>Outcomes and balances are handled by the local game server.</p></article>
+            <article><span>03</span><h3 class="font-display">Save progress if you like</h3><p>Create an account to keep your demo balance between visits.</p></article>
+          </div>
+        </section>
+      </main>
+      <footer><span>LUCKY LOUNGE</span><span>Just for fun · Virtual credits only · Take a break whenever you want</span></footer>
     </div>
-  </header>
 
-  <div id="tickerBar">
-    <span class="ticker-tag">CASINO NOTE</span>
-    <div id="tickerText">Welcome to the Baja Casino gaming room — Virtual credits only</div>
-  </div>
-
-  <main id="lobbyView">
-    <section class="hero-banner" id="heroBanner">
-      <div class="hero-glow"></div>
-      <div class="hero-content">
-        <span id="heroBadge" class="hero-badge">THE BAJA SALON</span>
-        <h1 id="heroTitle">Classic games in an elegant lounge</h1>
-        <p id="heroDesc">Choose a table or step into the slots floor for a refined session with virtual credits.</p>
-        <button id="heroCta" class="cta-btn" onclick="openTable('roulette')">ENTER THE SALON →</button>
+    <dialog id="account-dialog" aria-labelledby="account-dialog-title">
+      <form method="dialog" class="dialog-close-form"><button class="close-button" aria-label="Close account dialog">×</button></form>
+      <p class="eyebrow">YOUR LUCKY LOUNGE ACCOUNT</p>
+      <h2 class="font-display" id="account-dialog-title">Welcome back</h2>
+      <div id="account-auth">
+        <div class="auth-tabs" role="group" aria-label="Account action">
+          <button id="login-tab" class="auth-tab active" type="button" aria-selected="true">Sign in</button>
+          <button id="register-tab" class="auth-tab" type="button" aria-selected="false">Create account</button>
+        </div>
+        <form id="auth-form">
+          <label class="auth-field"><span>Email</span><input name="email" type="email" maxlength="254" autocomplete="email" required></label>
+          <label id="display-name-field" class="auth-field" hidden><span>Display name (new accounts only)</span><input name="displayName" minlength="3" maxlength="20" autocomplete="nickname" disabled></label>
+          <label class="auth-field"><span>Password</span><input name="password" type="password" minlength="12" maxlength="128" autocomplete="current-password" required></label>
+          <label id="leaderboard-opt-in-field" class="checkbox-field" hidden><input name="leaderboardOptIn" type="checkbox" disabled><span>Show my display name on the public leaderboard</span></label>
+          <p id="auth-note" class="privacy-note">Email is unverified in this local demo. Password recovery is not available; use a unique password.</p>
+          <aside class="demo-credentials" aria-label="Demo account credentials">
+            <strong>Demo admin account</strong>
+            <span>Email: <code>admin@luckylounge.demo</code></span>
+            <span>Password: <code>DemoAdmin!2026</code></span>
+            <button id="fill-demo-account" type="button">Use demo credentials</button>
+            <small>Local player demo only; this does not unlock the operator console.</small>
+          </aside>
+          <p id="auth-message" class="form-message" aria-live="polite"></p>
+          <button id="auth-submit" class="submit-button" type="submit">Sign in</button>
+        </form>
       </div>
-      <div class="hero-dots">
-        <span class="dot active" onclick="setBanner(0)"></span>
-        <span class="dot" onclick="setBanner(1)"></span>
-        <span class="dot" onclick="setBanner(2)"></span>
-      </div>
-    </section>
-
-    <section class="jackpot-strip">
-      <div class="jp-card">
-        <div class="jp-label">BAJA GRAND JACKPOT</div>
-        <div class="jp-val" id="grandJackpot">25,000</div>
-      </div>
-      <div class="jp-card">
-        <div class="jp-label">ZERO PAYOUT</div>
-        <div class="jp-val emerald">14x</div>
-      </div>
-      <div class="jp-card">
-        <div class="jp-label">MEGA SLOTS TOP</div>
-        <div class="jp-val cyan">25x</div>
-      </div>
-    </section>
-
-    <section class="section-head">
-      <h2>FEATURED 3D TABLES</h2>
-      <span>Tap to enter</span>
-    </section>
-
-    <section class="games-grid">
-      <article class="game-card" onclick="openTable('roulette')">
-        <div class="card-top accent-gold">
-          <span class="card-tag">LIVE 3D</span>
-          <span class="card-payout">14x ZERO</span>
+      <section id="account-profile" hidden>
+        <p id="account-welcome" class="profile-welcome"></p>
+        <div class="profile-stats"><span>Best balance<strong id="profile-best">0</strong></span><span>Games played<strong id="profile-games">0</strong></span><span>Wins<strong id="profile-wins">0</strong></span></div>
+        <form id="profile-form">
+          <label class="auth-field"><span>Display name</span><input name="displayName" minlength="3" maxlength="20" required></label>
+          <label class="checkbox-field"><input name="leaderboardOptIn" type="checkbox"><span>Opt in to the public balance leaderboard</span></label>
+          <button class="panel-button" type="submit">Save profile</button>
+        </form>
+        <h3 class="font-display achievement-heading">Achievements</h3>
+        <ul id="achievement-list" class="achievement-list"></ul>
+        <div class="profile-actions">
+          <button id="share-achievements" class="share-button" type="button">Share achievements ↗</button>
+          <button id="sign-out" class="text-button" type="button">Sign out</button>
         </div>
-        <h3>Roulette 3D VIP</h3>
-        <p>Neon-lit 15-pocket 3D wheel with orbiting ball, gold rim &amp; spark bursts.</p>
-        <div class="card-foot">PLAY ROULETTE →</div>
-      </article>
-
-      <article class="game-card" onclick="openTable('rocket')">
-        <div class="card-top accent-magenta">
-          <span class="card-tag">PRIZE BOOST</span>
-          <span class="card-payout">UP TO 25x</span>
-        </div>
-        <h3>Rising Rockets</h3>
-        <p>Live climbing multiplier in 3D—hit CASH OUT before Big Bang detonation.</p>
-        <div class="card-foot">LAUNCH ROCKET →</div>
-      </article>
-
-      <article class="game-card" onclick="openTable('slots')">
-        <div class="card-top accent-cyan">
-          <span class="card-tag">3D REELS</span>
-          <span class="card-payout">25x TRIPLE 7</span>
-        </div>
-        <h3>3D Mega Slots</h3>
-        <p>Three 3D drums with sequential reel stops, bloom glow &amp; combo wins.</p>
-        <div class="card-foot">SPIN SLOTS →</div>
-      </article>
-
-      <article class="game-card" onclick="window.location.href='/games/cosmic-slots.html'">
-        <div class="card-top accent-cyan">
-          <span class="card-tag">5 REELS • 5 PAYLINES</span>
-          <span class="card-payout">UP TO 50x</span>
-        </div>
-        <h3>Cosmic Fortune 5x3</h3>
-        <p>Five animated reels with wilds, star-scatter bonuses, manual stops, and big-win effects.</p>
-        <div class="card-foot">PLAY COSMIC FORTUNE →</div>
-      </article>
-
-      <article class="game-card" onclick="window.location.href='/games/multi-theme-slots.html?theme=cosmic'">
-        <div class="card-top accent-cyan">
-          <span class="card-tag">5 REELS • 5 PAYLINES</span>
-          <span class="card-payout">UP TO 50x</span>
-        </div>
-        <h3>Cosmic Fortune: Theme Edition</h3>
-        <p>Chase supernova scatter bonuses and lightning wilds in a cosmic 5x3 slot.</p>
-        <div class="card-foot">PLAY COSMIC THEME →</div>
-      </article>
-
-      <article class="game-card" onclick="window.location.href='/games/multi-theme-slots.html?theme=egypt'">
-        <div class="card-top accent-gold">
-          <span class="card-tag">PHARAOH'S GOLD</span>
-          <span class="card-payout">UP TO 50x</span>
-        </div>
-        <h3>Pharaoh's Golden Tomb</h3>
-        <p>Find pyramid bonuses, sacred scarab wilds, and Nile treasures.</p>
-        <div class="card-foot">ENTER THE TOMB →</div>
-      </article>
-
-      <article class="game-card" onclick="window.location.href='/games/multi-theme-slots.html?theme=cyber'">
-        <div class="card-top accent-magenta">
-          <span class="card-tag">CYBER 2099</span>
-          <span class="card-payout">UP TO 50x</span>
-        </div>
-        <h3>Cyber Neon 2099</h3>
-        <p>Trigger mainframe bonuses and overclock your plasma-core wilds.</p>
-        <div class="card-foot">ENTER THE MAINFRAME →</div>
-      </article>
-
-      <article class="game-card" onclick="window.location.href='/games/multi-theme-slots.html?theme=dragon'">
-        <div class="card-top accent-gold">
-          <span class="card-tag">DRAGON DYNASTY</span>
-          <span class="card-payout">UP TO 50x</span>
-        </div>
-        <h3>Imperial Dragon Dynasty</h3>
-        <p>Celebrate the lantern festival and collect jade multipliers.</p>
-        <div class="card-foot">PLAY THE DYNASTY →</div>
-      </article>
-
-      <article class="game-card" onclick="window.location.href='/games/multi-theme-slots.html?theme=pirate'">
-        <div class="card-top accent-cyan">
-          <span class="card-tag">KRAKEN PLUNDER</span>
-          <span class="card-payout">UP TO 50x</span>
-        </div>
-        <h3>Corsair Kraken Plunder</h3>
-        <p>Hunt sunken chests, compass wilds, and the Kraken bounty.</p>
-        <div class="card-foot">SAIL FOR TREASURE →</div>
-      </article>
-
-      <article class="game-card" onclick="window.location.href='/games/multi-theme-slots.html?theme=western'">
-        <div class="card-top accent-gold">
-          <span class="card-tag">WILD WEST</span>
-          <span class="card-payout">UP TO 50x</span>
-        </div>
-        <h3>Outlaw Gold Rush</h3>
-        <p>Raid the bank vault with dynamite wilds and sheriff bounties.</p>
-        <div class="card-foot">RIDE FOR GOLD →</div>
-      </article>
-    </section>
-  </main>
-
-  <section id="tableHud" class="hidden">
-    <div class="table-topbar">
-      <button class="back-btn" onclick="goLobby()">← LOBBY</button>
-      <div id="activeTableName" class="table-badge">ROULETTE 3D VIP</div>
-    </div>
-
-    <div id="statusBanner">Select chip size &amp; place your bet</div>
-    <div id="liveMult" class="hidden">1.00x</div>
-
-    <div id="controlDeck">
-      <div id="chipRow">
-        <button class="chip-opt" onclick="selectChip(50, this)">50</button>
-        <button class="chip-opt active" onclick="selectChip(100, this)">100</button>
-        <button class="chip-opt" onclick="selectChip(250, this)">250</button>
-        <button class="chip-opt" onclick="selectChip(500, this)">500</button>
-      </div>
-
-      <div id="rouletteDeck" class="action-grid">
-        <button class="act-btn red-btn" onclick="betRoulette('red')">RED 2x</button>
-        <button class="act-btn green-btn" onclick="betRoulette('green')">ZERO 14x</button>
-        <button class="act-btn black-btn" onclick="betRoulette('black')">BLACK 2x</button>
-      </div>
-
-      <div id="rocketDeck" class="action-grid hidden">
-        <button id="rocketLaunchBtn" class="act-btn launch-btn" onclick="startRocketRun()">🚀 LAUNCH ROCKET</button>
-        <button id="rocketCashoutBtn" class="act-btn cashout-btn hidden" onclick="cashoutRocketRun()">💰 CASH OUT</button>
-      </div>
-
-      <div id="slotsDeck" class="action-grid hidden">
-        <button id="slotsSpinBtn" class="act-btn slot-btn" onclick="spinMegaSlots()">🎰 SPIN 3D REELS</button>
-      </div>
-    </div>
-  </section>
-
-  <script src="/socket.io/socket.io.js"></script>
-  <script type="module" src="/js/engine3d.js"></script>
-  <script src="/js/app.js"></script>
-</body>
+        <p class="privacy-note">This local demo has no email verification or password reset. Keep your password safe.</p>
+        <p id="profile-message" class="form-message" aria-live="polite"></p>
+      </section>
+    </dialog>
+  </body>
 </html>
